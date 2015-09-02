@@ -1,0 +1,11 @@
+@ce(8, "Classe 'A' não existe", 
+  "Class 'A' was not found", 
+  "comp.Compiler.factor()")
+
+class Program {
+    
+    public void run() {  
+	    new A();
+    }
+
+}

@@ -87,6 +87,7 @@ public class Compiler {
 			else
 				lexer.nextToken();
 		}
+		//não entendi, ler gramática:
 		if ( name.equals("nce") ) {
 			if ( metaobjectParamList.size() != 0 )
 				signalError.show("Metaobject 'nce' does not take parameters");
@@ -138,10 +139,26 @@ public class Compiler {
 		if ( lexer.token != Symbol.LEFTCURBRACKET )
 			signalError.show("{ expected", true);
 		lexer.nextToken();
-
-		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
-
+		
+		//verificar se tem final ou static
+		while (/* lexer.token == Symbol.FINAL|| lexer.token == Symbol.STATIC||*/lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
+			
+			//3 tipos de qualifier: static, final e (public/private)
 			Symbol qualifier;
+			//Symbol Final = null;
+			//Symbol Static = null;
+			
+			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
+			/*if(lexer.token == Symbol.FINAL){
+				Final = Symbol.FINAL;
+				lexer.nextToken();
+			}*/
+			
+			/*if(lexer.token == Symbol.STATIC){
+				Static = Symbol.STATIC;
+				lexer.nextToken();
+			}*/
+			
 			switch (lexer.token) {
 			case PRIVATE:
 				lexer.nextToken();
@@ -160,32 +177,75 @@ public class Compiler {
 				signalError.show("Identifier expected");
 			String name = lexer.getStringValue();
 			lexer.nextToken();
+			//saber se o nome da variável ou método já foi declarado
+			InstanceVariable var;
+			
+			var = (InstanceVariable)symbolTable.get(name);
+			
 			if ( lexer.token == Symbol.LEFTPAR )
-				methodDec(t, name, qualifier);
+				if(var == null){
+					methodDec(t, name, qualifier);
+				}else
+					signalError.show("Method already declared.");
+				
 			else if ( qualifier != Symbol.PRIVATE )
+				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare a public instance variable");
 			else
-				instanceVarDec(t, name);
+				//acrescentar o qualifier? (final/static)
+				if(name == null){
+					instanceVarDec(t, name);
+				}else
+					signalError.show("Variable already declared.");
+				
 		}
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
 			signalError.show("public/private or \"}\" expected");
 		lexer.nextToken();
 
 	}
-
+//feito
 	private void instanceVarDec(Type type, String name) {
 		// InstVarDec ::= [ "static" ] "private" Type IdList ";"
+		
+		InstanceVariable var;
+		InstanceVariableList listVar = new InstanceVariableList();
+		
+		var = new InstanceVariable(name, type);
+		symbolTable.putInLocal(name, var);
+		
+		//Adiciona na lista de variáveis
+		listVar.addElement(var);
+		
 
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
 			String variableName = lexer.getStringValue();
+			var = (InstanceVariable) symbolTable.get(variableName);
+			
+			if(var == null){
+				//Se a variável não está na tabela então coloca
+				//variáveis de instancia não seriam globais?
+				var = new InstanceVariable(variableName, type);
+				symbolTable.putInLocal(variableName, var);
+				listVar.addElement(var);
+				
+				var = null;
+				variableName = null;
+				
+			}else
+				signalError.show("Variable already declared");
+			
+			
 			lexer.nextToken();
 		}
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
+		
+		//return listVar;
 	}
 
 	private void methodDec(Type type, String name, Symbol qualifier) {
@@ -193,6 +253,8 @@ public class Compiler {
 		 * MethodDec ::= Qualifier Return Id "("[ FormalParamDec ] ")" "{"
 		 *                StatementList "}"
 		 */
+		
+		//criar classe para method? ou procurar com um metodo na classe KraClass (documentação especifica assim)
 
 		lexer.nextToken();
 		if ( lexer.token != Symbol.RIGHTPAR ) formalParamDec();
@@ -208,21 +270,54 @@ public class Compiler {
 		lexer.nextToken();
 
 	}
-
+	
+//feito
 	private void localDec() {
 		// LocalDec ::= Type IdList ";"
+		ArrayList<Variable> varLocalList = new ArrayList<Variable>();
+		Variable v;
 
 		Type type = type();
 		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
-		Variable v = new Variable(lexer.getStringValue(), type);
+		
+		//verifica de váriável já foi declarada
+		
+		String name = lexer.getStringValue();
+		v = (Variable)symbolTable.get(name);
+		
+		if(v==null){
+			v = new Variable(name, type);
+			symbolTable.putInLocal(name, v);
+		}
+		
+		varLocalList.add(v);
+		
 		lexer.nextToken();
+		
+		v = null;
+		name = null;
+		
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
+			
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
-			v = new Variable(lexer.getStringValue(), type);
+			name = lexer.getStringValue();
+			v = (Variable)symbolTable.get(name);
+			
+			if(v==null){
+				v = new Variable(name, type);
+				symbolTable.putInLocal(name, v);
+			}
+			
+			varLocalList.add(v);
 			lexer.nextToken();
+			
+			v = null;
+			name = null;
 		}
+		
+		//return varLocalList;
 	}
 
 	private void formalParamDec() {
@@ -263,6 +358,9 @@ public class Compiler {
 		case IDENT:
 			// # corrija: faça uma busca na TS para buscar a classe
 			// IDENT deve ser uma classe.
+			//imagino que a classe retorna um tipo "ident" e o nome do tipo é armazenado em algum lugar 
+			//String nameType = lexer.getStringValue();
+			//result = Type.identType;
 			result = null;
 			break;
 		default:
