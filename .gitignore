@@ -1,0 +1,5 @@
+*.class
+*.kra
+*.kra2
+report.txt
+src/comp/Comp.java
