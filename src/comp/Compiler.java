@@ -140,24 +140,27 @@ public class Compiler {
 			signalError.show("{ expected", true);
 		lexer.nextToken();
 		
-		//verificar se tem final ou static
-		while (/* lexer.token == Symbol.FINAL|| lexer.token == Symbol.STATIC||*/lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
-			
+		while (lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			//3 tipos de qualifier: static, final e (public/private)
-			Symbol qualifier;
-			//Symbol Final = null;
-			//Symbol Static = null;
+			Symbol finalQualifier = null;
+			Symbol staticQualifier = null;
 			
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
-			/*if(lexer.token == Symbol.FINAL){
-				Final = Symbol.FINAL;
+			if (lexer.token == Symbol.FINAL) {
+				finalQualifier = Symbol.FINAL;
 				lexer.nextToken();
-			}*/
+			}
 			
-			/*if(lexer.token == Symbol.STATIC){
-				Static = Symbol.STATIC;
+			if (lexer.token == Symbol.STATIC) {
+				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
-			}*/
+			}
+		}
+		
+		//verificar se tem final ou static
+		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
+			
+			Symbol qualifier;
 			
 			switch (lexer.token) {
 			case PRIVATE:
@@ -172,31 +175,25 @@ public class Compiler {
 				signalError.show("private, or public expected");
 				qualifier = Symbol.PUBLIC;
 			}
+			
 			Type t = type();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
 			String name = lexer.getStringValue();
 			lexer.nextToken();
+			
 			//saber se o nome da variável ou método já foi declarado
 			InstanceVariable var;
 			
-			var = (InstanceVariable)symbolTable.get(name);
-			
-			if ( lexer.token == Symbol.LEFTPAR )
-				if(var == null){
-					methodDec(t, name, qualifier);
-				}else
-					signalError.show("Method already declared.");
-				
-			else if ( qualifier != Symbol.PRIVATE )
+			if ( lexer.token == Symbol.LEFTPAR ) {
+				methodDec(t, name, qualifier);				
+			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare a public instance variable");
-			else
+			} else {
 				//acrescentar o qualifier? (final/static)
-				if(name == null){
-					instanceVarDec(t, name);
-				}else
-					signalError.show("Variable already declared.");
+				instanceVarDec(t, name);
+			}
 				
 		}
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
@@ -212,11 +209,10 @@ public class Compiler {
 		InstanceVariableList listVar = new InstanceVariableList();
 		
 		var = new InstanceVariable(name, type);
-		symbolTable.putInLocal(name, var);
+		//symbolTable.putInLocal(name, var);
 		
 		//Adiciona na lista de variáveis
 		listVar.addElement(var);
-		
 
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
@@ -225,22 +221,23 @@ public class Compiler {
 			String variableName = lexer.getStringValue();
 			var = (InstanceVariable) symbolTable.get(variableName);
 			
-			if(var == null){
+			if (var == null) {
 				//Se a variável não está na tabela então coloca
 				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type);
-				symbolTable.putInLocal(variableName, var);
+				//symbolTable.putInLocal(variableName, var);
 				listVar.addElement(var);
 				
 				var = null;
 				variableName = null;
 				
-			}else
+			} else
 				signalError.show("Variable already declared");
 			
 			
 			lexer.nextToken();
 		}
+		
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();

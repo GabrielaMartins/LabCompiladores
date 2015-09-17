@@ -17,6 +17,7 @@ public enum Symbol {
     EXTENDS("extends"),
     FALSE("false"),
     FINAL("final"),
+    STATIC("static"),
     GE(">="),
     GT(">"),
     IDENT("~ident"),
