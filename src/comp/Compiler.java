@@ -228,7 +228,7 @@ public class Compiler {
 				//Se a variável não está na tabela então coloca
 				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type);
-				//symbolTable.putInLocal(variableName, var);
+				symbolTable.putInLocal(variableName, var);
 				listVar.addElement(var);
 				
 				var = null;
