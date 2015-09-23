@@ -245,6 +245,9 @@ public class Compiler {
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
 		
+		//Após processar as variáveis de instância, já pode limpar a localTable.
+		symbolTable.removeLocalIdent();
+		
 		//return listVar;
 	}
 
