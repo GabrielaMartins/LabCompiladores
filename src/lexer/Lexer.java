@@ -224,7 +224,7 @@ public class Lexer {
                     	token = Symbol.MOCall;
                     	break;
                     case '_' :
-                      error.show("'_' cannot start an indentifier");
+                      error.show("Identifier starting with underscore");
                       break;
                     case '"' :
                        StringBuffer s = new StringBuffer();

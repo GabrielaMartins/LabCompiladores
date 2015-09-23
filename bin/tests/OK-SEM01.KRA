@@ -1,0 +1,28 @@
+@nce
+
+class A {
+   static private A a;
+   public void m() {
+      A.a = null;
+      read(A.a);
+      write(A.a);
+      if ( A.a == null ) ;
+   }
+   static public void p() { 
+      A.a = null;
+      read( A.a );
+      write(A.a);
+      if ( A.a == null ) ;
+  }
+}
+
+
+class Program {
+   
+   public void run() {
+      A a;
+
+      a = new A();
+      a.m();
+   }
+}

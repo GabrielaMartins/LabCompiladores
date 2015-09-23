@@ -285,6 +285,8 @@ public class Compiler {
 		if(v==null){
 			v = new Variable(name, type);
 			symbolTable.putInLocal(name, v);
+		}else{
+			signalError.show("Variable " + name + " is being redeclared");
 		}
 		
 		varLocalList.add(v);
@@ -305,6 +307,8 @@ public class Compiler {
 			if(v==null){
 				v = new Variable(name, type);
 				symbolTable.putInLocal(name, v);
+			}else{
+				signalError.show("Variable " + name + " is being redeclared");
 			}
 			
 			varLocalList.add(v);
@@ -465,7 +469,16 @@ public class Compiler {
 			/*
 			 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ]
 			 */
+			//verificando se uma variável foi declarada {ER-SEM02}
+			if(lexer.token == Symbol.IDENT){
+				String name = lexer.getStringValue();
+				Variable var = symbolTable.getInLocal(name);
+				if(var == null){
+					signalError.show("Variable " + name + " was not declared");
+				}
+			}
 			expr();
+			
 			if ( lexer.token == Symbol.ASSIGN ) {
 				lexer.nextToken();
 				expr();
@@ -473,6 +486,7 @@ public class Compiler {
 					signalError.show("';' expected", true);
 				else
 					lexer.nextToken();
+				
 			}
 		}
 		return null;
@@ -636,6 +650,7 @@ public class Compiler {
 			lexer.nextToken();
 			Expr right = signalFactor();
 			left = new CompositeExpr(left, op, right);
+			
 		}
 		return left;
 	}
