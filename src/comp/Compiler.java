@@ -228,7 +228,7 @@ public class Compiler {
 				//Se a variável não está na tabela então coloca
 				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type);
-				//symbolTable.putInLocal(variableName, var);
+				symbolTable.putInLocal(variableName, var);
 				listVar.addElement(var);
 				
 				var = null;
@@ -258,7 +258,8 @@ public class Compiler {
 		 */
 		
 		//criar classe para method? ou procurar com um metodo na classe KraClass (documentação especifica assim)
-
+		
+		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.RIGHTPAR ) formalParamDec();
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
@@ -319,9 +320,7 @@ public class Compiler {
 			
 			varLocalList.add(v);
 			lexer.nextToken();
-			
-			v = null;
-			name = null;
+		
 		}
 		
 		//return varLocalList;
