@@ -182,8 +182,6 @@ public class Compiler {
 			String name = lexer.getStringValue();
 			lexer.nextToken();
 			
-			//saber se o nome da variável ou método já foi declarado
-			InstanceVariable var;
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
 				methodDec(t, name, qualifier);				
@@ -191,8 +189,9 @@ public class Compiler {
 				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare a public instance variable");
 			} else {
-				//acrescentar o qualifier? (final/static)
+				
 				instanceVarDec(t, name);
+				
 			}
 				
 		}
@@ -208,12 +207,16 @@ public class Compiler {
 		InstanceVariable var;
 		InstanceVariableList listVar = new InstanceVariableList();
 		
-		var = new InstanceVariable(name, type);
-		//symbolTable.putInLocal(name, var);
+		var = (InstanceVariable)symbolTable.get(name);
 		
-		//Adiciona na lista de variáveis
-		listVar.addElement(var);
-
+		if(var != null){
+			var = new InstanceVariable(name, type);
+			symbolTable.putInLocal(name, var);
+			listVar.addElement(var);
+		}else{
+			signalError.show("Variable " + name + " is being redeclared");
+		}
+			
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
@@ -232,7 +235,7 @@ public class Compiler {
 				variableName = null;
 				
 			} else
-				signalError.show("Variable already declared");
+				signalError.show("Variable " + name + " is being redeclared");
 			
 			
 			lexer.nextToken();
