@@ -126,8 +126,8 @@ public class Compiler {
 		Symbol finalQualifier = null;
 		Symbol staticQualifier = null;
 		
-		MethodList listPublicMethods = null;
-		MethodList listPrivateMethods = null;
+		MethodList listPublicMethods = new MethodList();
+		MethodList listPrivateMethods = new MethodList();
 		Method met;
 		
 		if ( lexer.token != Symbol.CLASS ) signalError.show("'class' expected");
