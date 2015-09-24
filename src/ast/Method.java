@@ -18,6 +18,8 @@ public class Method {
         this.qualifier = qualifier;
         this.finalQualifier = null;
         this.staticQualifier = null;
+        this.paramList = null;
+        this.statements = null;
     }
 
     public String getName() { 
@@ -32,11 +34,19 @@ public class Method {
     	return qualifier;
     }
     
-    public Symbol getFinal() {
+    public ParamList getParamList() {
+    	return paramList;
+    }
+    
+    public StatementList getStatementList() {
+    	return statements;
+    }
+    
+    public Symbol isFinal() {
     	return finalQualifier;
     }
     
-    public Symbol getStatic() {
+    public Symbol isStatic() {
     	return staticQualifier;
     }
     
@@ -47,10 +57,20 @@ public class Method {
     public void setStatic() {
     	staticQualifier = Symbol.STATIC;
     }
+    
+    public void setParamList(ParamList paramList) {
+    	this.paramList = paramList;
+    }
+    
+    public void setStatementList(StatementList statements) {
+    	this.statements = statements;
+    }
 
     private String name;
     private Type type;
-    private Symbol qualifier;
+    private Symbol qualifier; //private or public?
     private Symbol finalQualifier;
     private Symbol staticQualifier;
+    private ParamList paramList;
+    private StatementList statements;
 }
