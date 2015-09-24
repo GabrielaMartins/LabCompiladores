@@ -34,20 +34,20 @@ public class Method {
     	return qualifier;
     }
     
-    public Symbol getFinal() {
-    	return finalQualifier;
-    }
-    
-    public Symbol getStatic() {
-    	return staticQualifier;
-    }
-    
     public ParamList getParamList() {
     	return paramList;
     }
     
     public StatementList getStatementList() {
     	return statements;
+    }
+    
+    public Symbol isFinal() {
+    	return finalQualifier;
+    }
+    
+    public Symbol isStatic() {
+    	return staticQualifier;
     }
     
     public void setFinal() {
@@ -68,7 +68,7 @@ public class Method {
 
     private String name;
     private Type type;
-    private Symbol qualifier;
+    private Symbol qualifier; //private or public?
     private Symbol finalQualifier;
     private Symbol staticQualifier;
     private ParamList paramList;
