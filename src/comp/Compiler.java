@@ -121,12 +121,22 @@ public class Compiler {
 		 * MethodDec ::= Qualifier Type Id "("[ FormalParamDec ] ")" "{" StatementList "}" 
 		 * Qualifier ::= [ "static" ]  ( "private" | "public" )
 		 */
+		
+		//3 tipos de qualifier: static, final e (public/private)
+		Symbol finalQualifier = null;
+		Symbol staticQualifier = null;
+		
+		MethodList listPublicMethods = null;
+		MethodList listPrivateMethods = null;
+		Method met;
+		
 		if ( lexer.token != Symbol.CLASS ) signalError.show("'class' expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.IDENT )
 			signalError.show(SignalError.ident_expected);
 		String className = lexer.getStringValue();
 		symbolTable.putInGlobal(className, new KraClass(className));
+		currentClass = new KraClass(className);
 		lexer.nextToken();
 		if ( lexer.token == Symbol.EXTENDS ) {
 			lexer.nextToken();
@@ -141,10 +151,6 @@ public class Compiler {
 		lexer.nextToken();
 		
 		while (lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
-			//3 tipos de qualifier: static, final e (public/private)
-			Symbol finalQualifier = null;
-			Symbol staticQualifier = null;
-			
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -184,7 +190,14 @@ public class Compiler {
 			
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
-				methodDec(t, name, qualifier);				
+				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
+				if(met.getQualifier() == Symbol.PUBLIC){
+					listPublicMethods.addElement(met);
+					currentClass.setPrivateMethodList(listPrivateMethods);
+				}else if(met.getQualifier() == Symbol.PRIVATE){
+					listPrivateMethods.addElement(met);
+					currentClass.setPublicMethodList(listPublicMethods);
+				}
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare a public instance variable");
@@ -198,7 +211,7 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
 			signalError.show("public/private or \"}\" expected");
 		lexer.nextToken();
-
+		
 	}
 //feito
 	private void instanceVarDec(Type type, String name) {
@@ -251,13 +264,54 @@ public class Compiler {
 		//return listVar;
 	}
 
-	private void methodDec(Type type, String name, Symbol qualifier) {
+	private Method methodDec(Type type, String name, Symbol qualifier, Symbol finalQualifier, Symbol staticQualifier) {
 		/*
 		 * MethodDec ::= Qualifier Return Id "("[ FormalParamDec ] ")" "{"
 		 *                StatementList "}"
 		 */
+		Method met = null;
+		MethodList privateMethodList, publicMethodList;
 		
-		//criar classe para method? ou procurar com um metodo na classe KraClass (documentação especifica assim)
+		privateMethodList = currentClass.getPrivateMethodList();
+		publicMethodList = currentClass.getPublicMethodList();
+		boolean alreadyExists = false;
+		Iterator it = privateMethodList.elements();
+		
+		while(it.hasNext()){
+			 met = (Method) it.next();
+			if(met.getName() == name){
+				signalError.show("Method " + name + " is being redeclared");
+				alreadyExists = true;
+				break;
+			}
+		}
+		
+		if(!alreadyExists){
+			it = publicMethodList.elements();
+			
+			while(it.hasNext()){
+				met = (Method) it.next();
+				if(met.getName() == name){
+					signalError.show("Method " + name + " is being redeclared");
+					alreadyExists = true;
+					break;
+				}
+			}
+		}else{
+			met = null;
+		}
+		
+		if(alreadyExists == false){
+			met = new Method(name , type, qualifier);
+			if(finalQualifier != null){
+				met.setFinal();
+			}
+			if(staticQualifier != null){
+				met.setStatic();
+			}
+		}else{
+			met = null;
+		}
 		
 		
 		lexer.nextToken();
@@ -272,6 +326,8 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTCURBRACKET ) signalError.show("} expected");
 
 		lexer.nextToken();
+		
+		return met;
 
 	}
 	
@@ -914,5 +970,6 @@ public class Compiler {
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;
 	private SignalError	signalError;
+	private KraClass currentClass;
 
 }
