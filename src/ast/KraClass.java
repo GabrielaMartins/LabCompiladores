@@ -46,7 +46,7 @@ public class KraClass extends Type {
 	   while(it.hasNext()) {
 		   
 		   Method thisMethod = (Method) it.next();
-		   if (thisMethod == method) {
+		   if (thisMethod.compareTo(method) == 0) {
 			   return thisMethod;
 		   }
 	   }
@@ -55,12 +55,45 @@ public class KraClass extends Type {
 	   while(it.hasNext()) {
 		   
 		   Method thisMethod = (Method) it.next();
-		   if (thisMethod == method) {
+		   if (thisMethod.compareTo(method) == 0) {
 			   return thisMethod;
 		   }
 	   }
 	   
 	   return null;
+   }
+   
+   public void printPublic() {
+	   printM(publicMethodList);
+   }
+   
+   public void printPrivate() {
+	   printM(privateMethodList);
+   }
+   
+   public void printM(MethodList ml) {
+	   Iterator<Method> it = ml.elements();
+	   while(it.hasNext()) {
+		   System.out.println();
+		   Method thisMethod = (Method) it.next();
+		   if (thisMethod.isFinal()) {
+			   System.out.print("final ");
+		   }
+		   if (thisMethod.isStatic()) {
+			   System.out.print("static ");
+		   }
+		   System.out.print(thisMethod.getQualifier() + " " + thisMethod.getType().getName() + " " + thisMethod.getName() + "(");
+		   
+		   ParameterList param = thisMethod.getParamList();
+		   Iterator<Parameter> p = param.elements();
+		   while (p.hasNext()) {
+			   Parameter pm = (Parameter) p.next();
+			   System.out.print(pm.getType().getName() + " " + pm.getName() + " ");
+		   }
+		   
+		   System.out.print(");");
+	   }
+	   System.out.println();
    }
    
    private String name;

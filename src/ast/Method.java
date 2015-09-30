@@ -19,7 +19,7 @@ public class Method implements Comparable<Method> {
         this.qualifier = qualifier;
         this.finalQualifier = null;
         this.staticQualifier = null;
-        this.paramList = null;
+        this.paramList = new ParameterList();
         this.statements = null;
     }
 
@@ -43,12 +43,12 @@ public class Method implements Comparable<Method> {
     	return statements;
     }
     
-    public Symbol isFinal() {
-    	return finalQualifier;
+    public boolean isFinal() {
+    	return finalQualifier != null;
     }
     
-    public Symbol isStatic() {
-    	return staticQualifier;
+    public boolean isStatic() {
+    	return staticQualifier != null;
     }
     
     public void setFinal() {
@@ -71,8 +71,7 @@ public class Method implements Comparable<Method> {
 	public int compareTo(Method other) {
 		int thisParamSize, otherParamSize;
     	
-    	if (this.name != other.getName()) {
-    		
+    	if (this.name != other.getName()) {	
     		return this.name.compareTo(other.getName());
     	}
     	
