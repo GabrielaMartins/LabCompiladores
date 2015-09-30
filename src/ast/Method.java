@@ -8,9 +8,10 @@
 
 package ast;
 
+import java.util.Iterator;
 import lexer.Symbol;
 
-public class Method {
+public class Method implements Comparable<Method> {
 
     public Method( String name, Type type, Symbol qualifier ) {
         this.name = name;
@@ -34,7 +35,7 @@ public class Method {
     	return qualifier;
     }
     
-    public ParamList getParamList() {
+    public ParameterList getParamList() {
     	return paramList;
     }
     
@@ -58,19 +59,56 @@ public class Method {
     	staticQualifier = Symbol.STATIC;
     }
     
-    public void setParamList(ParamList paramList) {
+    public void setParamList(ParameterList paramList) {
     	this.paramList = paramList;
     }
     
     public void setStatementList(StatementList statements) {
     	this.statements = statements;
     }
+    
+    @Override
+	public int compareTo(Method other) {
+		int thisParamSize, otherParamSize;
+    	
+    	if (this.name != other.getName()) {
+    		
+    		return this.name.compareTo(other.getName());
+    	}
+    	
+    	if (this.type != other.getType()) {
+    		return this.type.getName().compareTo(other.getType().getName());
+    	}
+    	
+    	thisParamSize = this.getParamList().getSize();
+    	otherParamSize = this.getParamList().getSize();
+    	if (thisParamSize != otherParamSize ) {
+    		return Integer.compare(thisParamSize, otherParamSize);
+    	}
+    	
+    	Iterator<Parameter> thisIt, otherIt;
+    	thisIt = this.getParamList().elements();
+    	otherIt = this.getParamList().elements();
+    	
+    	while(thisIt.hasNext() && otherIt.hasNext()) {
+    		
+    		Parameter thisParam = (Parameter) thisIt.next();
+    		Parameter otherParam = (Parameter) otherIt.next();
+    		if (thisParam.getType() != otherParam.getType()) {
+    			return thisParam.getType().getName().compareTo(otherParam.getName());
+    		}
+    		thisParamSize--;
+    		otherParamSize--;
+    	}
+    	
+    	return Integer.compare(thisParamSize, otherParamSize);
+	}
 
     private String name;
     private Type type;
     private Symbol qualifier; //private or public?
     private Symbol finalQualifier;
     private Symbol staticQualifier;
-    private ParamList paramList;
+    private ParameterList paramList;
     private StatementList statements;
 }
