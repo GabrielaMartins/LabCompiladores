@@ -135,8 +135,8 @@ public class Compiler {
 		if ( lexer.token != Symbol.IDENT )
 			signalError.show(SignalError.ident_expected);
 		String className = lexer.getStringValue();
-		symbolTable.putInGlobal(className, new KraClass(className));
-		currentClass = new KraClass(className);
+		symbolTable.putInGlobal(className, new KraClass(className, null, null));
+		currentClass = new KraClass(className, null, null);
 		lexer.nextToken();
 		if ( lexer.token == Symbol.EXTENDS ) {
 			lexer.nextToken();
@@ -163,7 +163,6 @@ public class Compiler {
 			}
 		}
 		
-		//verificar se tem final ou static
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
 			
 			Symbol qualifier;
@@ -191,12 +190,14 @@ public class Compiler {
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
+				System.out.println(met.getQualifier());
 				if(met.getQualifier() == Symbol.PUBLIC){
-					listPublicMethods.addElement(met);
-					currentClass.setPrivateMethodList(listPrivateMethods);
+					
+					
 				}else if(met.getQualifier() == Symbol.PRIVATE){
 					listPrivateMethods.addElement(met);
 					currentClass.setPublicMethodList(listPublicMethods);
+					System.out.println(currentClass.getPublicMethodList().toString());
 				}
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
@@ -269,53 +270,15 @@ public class Compiler {
 		 * MethodDec ::= Qualifier Return Id "("[ FormalParamDec ] ")" "{"
 		 *                StatementList "}"
 		 */
-		Method met = null;
-		MethodList privateMethodList, publicMethodList;
 		
-		privateMethodList = currentClass.getPrivateMethodList();
-		publicMethodList = currentClass.getPublicMethodList();
-		boolean alreadyExists = false;
-		Iterator it = privateMethodList.elements();
-		
-		while(it.hasNext()){
-			 met = (Method) it.next();
-			if(met.getName() == name){
-				signalError.show("Method " + name + " is being redeclared");
-				alreadyExists = true;
-				break;
-			}
-		}
-		
-		if(!alreadyExists){
-			it = publicMethodList.elements();
-			
-			while(it.hasNext()){
-				met = (Method) it.next();
-				if(met.getName() == name){
-					signalError.show("Method " + name + " is being redeclared");
-					alreadyExists = true;
-					break;
-				}
-			}
-		}else{
-			met = null;
-		}
-		
-		if(alreadyExists == false){
-			met = new Method(name , type, qualifier);
-			if(finalQualifier != null){
-				met.setFinal();
-			}
-			if(staticQualifier != null){
-				met.setStatic();
-			}
-		}else{
-			met = null;
-		}
-		
+		Method met = new Method(name, Type, qualifier);
+		if (finalQualifier != null) met.setFinal();
+		if (staticQualifier != null) met.setStatic();
 		
 		lexer.nextToken();
-		if ( lexer.token != Symbol.RIGHTPAR ) formalParamDec();
+		if ( lexer.token != Symbol.RIGHTPAR ) {
+			formalParamDec();
+		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 
 		lexer.nextToken();
@@ -382,22 +345,34 @@ public class Compiler {
 		//return varLocalList;
 	}
 
-	private void formalParamDec() {
+	private ParameterList formalParamDec() {
 		// FormalParamDec ::= ParamDec { "," ParamDec }
-
-		paramDec();
+		
+		ParameterList paramList = new ParameterList();
+		
+		paramList.addElement(paramDec());
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
-			paramDec();
+			paramList.addElement(paramDec());
 		}
+		
+		return paramList;
 	}
 
-	private void paramDec() {
+	private Parameter paramDec() {
 		// ParamDec ::= Type Id
-
-		type();
-		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
+		Type t = null;
+		String name = null;
+		
+		t = type();
+		if ( lexer.token != Symbol.IDENT ) {
+			signalError.show("Identifier expected");
+			return new Parameter("Param", t);
+		}
+		name = lexer.getStringValue();
 		lexer.nextToken();
+		
+		return new Parameter(name, t);
 	}
 
 	private Type type() {
