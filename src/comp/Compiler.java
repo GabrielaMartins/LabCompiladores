@@ -124,7 +124,6 @@ public class Compiler {
 		 */
 		
 		//3 tipos de qualifier: static, final e (public/private)
-		Symbol qualifier = null;
 		Symbol finalQualifier = null;
 		Symbol staticQualifier = null;
 		
@@ -166,12 +165,14 @@ public class Compiler {
 			signalError.show("{ expected", true);
 		lexer.nextToken();
 		
-		symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
+		//symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
 		currentClass = new KraClass(className, null, superClass);
 		
+		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
+			f = true; // =)
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -182,6 +183,8 @@ public class Compiler {
 				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
 			}
+			
+			Symbol qualifier;
 			
 			switch (lexer.token) {
 			case PRIVATE:
@@ -227,13 +230,11 @@ public class Compiler {
 			} else {
 				
 				instanceVarDec(t, name);
-			}
-			
-			qualifier = null;				
+			}			
 		}
 		
 		//Se qualifier não foi definido, não leu private ou public no while acima
-		if (qualifier == null) {
+		if (f == false) {
 			signalError.show("'public', 'private', or '}' expected");
 		}
 		
@@ -249,6 +250,8 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
 			signalError.show("public/private or \"}\" expected");
 		lexer.nextToken();		
+		
+		symbolTable.putInGlobal(currentClass.getName(), currentClass);
 	}
 //feito
 	private void instanceVarDec(Type type, String name) {
@@ -307,17 +310,28 @@ public class Compiler {
 		 *                StatementList "}"
 		 */
 		
-		
+		if (currentClass.getName().equals("Program") && name.equals("run")) {
+			
+			if (qualifier != Symbol.PUBLIC) {
+				signalError.show("Method 'run' of class 'Program' cannot be private");
+			}
+			
+			if (type != Type.voidType) {
+				signalError.show("Method 'run' of class 'Program' with a return " +
+								 "value type different from 'void'");
+			}
+		}
 		
 		Method met = new Method(name, type, qualifier);
 		if (finalQualifier != null) met.setFinal();
 		if (staticQualifier != null) met.setStatic();
+		currentMethod = met;
 		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.RIGHTPAR ) {
 			met.setParamList(formalParamDec());
 		}
-		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
+		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		
 		//Se não for nulo, achou algum parametro igual
 		if (currentClass.searchMethod(met) != null) {
@@ -999,7 +1013,8 @@ public class Compiler {
 
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;
-	private SignalError	signalError;
-	private KraClass currentClass;
+	private SignalError		signalError;
+	private KraClass 		currentClass;
+	private Method			currentMethod;
 
 }
