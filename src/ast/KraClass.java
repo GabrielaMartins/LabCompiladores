@@ -12,7 +12,7 @@ public class KraClass extends Type {
    public KraClass( String name, Symbol qualifier, KraClass superClass ) {
       super(name);
       this.qualifier = qualifier;
-      this.superclass = superClass;
+      this.superClass = superClass;
       this.instanceVariableList = null;
       this.publicMethodList = new MethodList();
       this.privateMethodList = new MethodList();
@@ -40,6 +40,10 @@ public class KraClass extends Type {
 	   privateMethodList.addElement(method); 
    }
    
+   public boolean hasSuper() {
+	   return this.superClass != null;
+   }
+   
    public Method searchMethod(Method method) {
 	   
 	   Iterator<Method> it = publicMethodList.elements();
@@ -58,6 +62,15 @@ public class KraClass extends Type {
 		   if (thisMethod.compareTo(method) == 0) {
 			   return thisMethod;
 		   }
+	   }
+	   
+	   return null;
+   }
+   
+   public Method searchMethodS(Method method) {
+	   
+	   if (superClass != null) {
+		   return superClass.searchMethod(method);
 	   }
 	   
 	   return null;
@@ -97,7 +110,7 @@ public class KraClass extends Type {
    }
    
    private String name;
-   private KraClass superclass;
+   private KraClass superClass;
    private Symbol qualifier;
    private InstanceVariableList instanceVariableList;
    private MethodList publicMethodList, privateMethodList;
