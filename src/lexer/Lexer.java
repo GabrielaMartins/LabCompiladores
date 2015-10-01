@@ -31,6 +31,7 @@ public class Lexer {
 		keywordsTable.put( "true", Symbol.TRUE );
 		keywordsTable.put( "false", Symbol.FALSE );
 		keywordsTable.put( "final", Symbol.FINAL );
+		keywordsTable.put( "static", Symbol.STATIC);
 		keywordsTable.put( "void", Symbol.VOID );
 		keywordsTable.put( "null", Symbol.NULL );
 		keywordsTable.put( "if", Symbol.IF );
