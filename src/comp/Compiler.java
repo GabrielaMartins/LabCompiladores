@@ -124,26 +124,41 @@ public class Compiler {
 		 */
 		
 		//3 tipos de qualifier: static, final e (public/private)
+		Symbol qualifier = null;
 		Symbol finalQualifier = null;
 		Symbol staticQualifier = null;
 		
-		MethodList listPublicMethods = new MethodList();
-		MethodList listPrivateMethods = new MethodList();
 		Method met;
+		KraClass superClass = null;
 		
 		if ( lexer.token != Symbol.CLASS ) signalError.show("'class' expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.IDENT )
 			signalError.show(SignalError.ident_expected);
+		
 		String className = lexer.getStringValue();
-		symbolTable.putInGlobal(className, new KraClass(className, null, null));
-		currentClass = new KraClass(className, null, null);
+		String superclassName = null;
+		if (symbolTable.getInGlobal(className) != null) {
+			signalError.show("Class '" + className + "already declared");
+		}
+		
 		lexer.nextToken();
 		if ( lexer.token == Symbol.EXTENDS ) {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
-			String superclassName = lexer.getStringValue();
+			
+			//Herda de si mesmo
+			superclassName = lexer.getStringValue();
+			if (superclassName.equals(className)) {
+				signalError.show("Class '" + className + "' is inheriting from itself");
+			}
+			
+			//Superclasse foi declarada?
+			superClass = symbolTable.getInGlobal(superclassName);
+			if (superClass == null) {
+				signalError.show("SuperClass '" + superclassName + "' is not declared");
+			}		
 
 			lexer.nextToken();
 		}
@@ -151,7 +166,12 @@ public class Compiler {
 			signalError.show("{ expected", true);
 		lexer.nextToken();
 		
-		while (lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
+		symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
+		currentClass = new KraClass(className, null, superClass);
+		
+		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
+				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
+			
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -162,19 +182,20 @@ public class Compiler {
 				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
 			}
-		}
-		
-		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
-			
-			Symbol qualifier;
 			
 			switch (lexer.token) {
 			case PRIVATE:
 				lexer.nextToken();
+				if (lexer.token == Symbol.STATIC) {
+					signalError.show(signalError.ident_expected);
+				}
 				qualifier = Symbol.PRIVATE;
 				break;
 			case PUBLIC:
 				lexer.nextToken();
+				if (lexer.token == Symbol.STATIC) {
+					signalError.show(signalError.ident_expected);
+				}
 				qualifier = Symbol.PUBLIC;
 				break;
 			default:
@@ -193,27 +214,41 @@ public class Compiler {
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
 				if (met.getQualifier() == Symbol.PUBLIC) {
 					currentClass.addPublicMethod(met);
-					//System.out.println("Metodos publicos:");
-					//currentClass.printPublic();
+					System.out.println("Metodos publicos:");
+					currentClass.printPublic();
 				} else {
 					currentClass.addPrivateMethod(met);
-					//System.out.println("Metodos privados:");
-					//currentClass.printPrivate();
+					System.out.println("Metodos privados:");
+					currentClass.printPrivate();
 				}
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
-				signalError.show("Attempt to declare a public instance variable");
+				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
 				
 				instanceVarDec(t, name);
-				
 			}
-				
+			
+			qualifier = null;				
 		}
+		
+		//Se qualifier não foi definido, não leu private ou public no while acima
+		if (qualifier == null) {
+			signalError.show("'public', 'private', or '}' expected");
+		}
+		
+		//Se for classe Program, deve ter metodo run()
+		if (currentClass.getName().equals("Program")) {
+			Method runMethod = new Method("run", Type.voidType, Symbol.PUBLIC);
+			runMethod.setParamList(new ParameterList());
+			if (currentClass.searchMethod(runMethod) == null) {
+				signalError.show("Method 'run' was not found in class 'Program'");
+			}
+		}
+		
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
 			signalError.show("public/private or \"}\" expected");
-		lexer.nextToken();
-		
+		lexer.nextToken();		
 	}
 //feito
 	private void instanceVarDec(Type type, String name) {
