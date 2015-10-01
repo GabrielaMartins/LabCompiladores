@@ -21,6 +21,7 @@ public class Compiler {
 		Program program = null;
 		lexer.nextToken();
 		program = program(compilationErrorList);
+				
 		return program;
 	}
 
@@ -190,14 +191,14 @@ public class Compiler {
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
-				System.out.println(met.getQualifier());
-				if(met.getQualifier() == Symbol.PUBLIC){
-					
-					
-				}else if(met.getQualifier() == Symbol.PRIVATE){
-					listPrivateMethods.addElement(met);
-					currentClass.setPublicMethodList(listPublicMethods);
-					System.out.println(currentClass.getPublicMethodList().toString());
+				if (met.getQualifier() == Symbol.PUBLIC) {
+					currentClass.addPublicMethod(met);
+					//System.out.println("Metodos publicos:");
+					//currentClass.printPublic();
+				} else {
+					currentClass.addPrivateMethod(met);
+					//System.out.println("Metodos privados:");
+					//currentClass.printPrivate();
 				}
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
@@ -271,15 +272,34 @@ public class Compiler {
 		 *                StatementList "}"
 		 */
 		
-		Method met = new Method(name, Type, qualifier);
+		
+		
+		Method met = new Method(name, type, qualifier);
 		if (finalQualifier != null) met.setFinal();
 		if (staticQualifier != null) met.setStatic();
 		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.RIGHTPAR ) {
-			formalParamDec();
+			met.setParamList(formalParamDec());
 		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
+		
+		//Se não for nulo, achou algum parametro igual
+		if (currentClass.searchMethod(met) != null) {
+			
+			if (met.isStatic()) {
+				signalError.show("Redefinition of static method '" + met.getName() +"'");
+			} else {
+				signalError.show("Method '" + met.getName() + "' is being redeclared");
+			}
+		} else if (currentClass.hasSuper()) {
+			if (currentClass.searchMethod(met) != null) {
+				if (met.isFinal()) {
+					signalError.show("Redeclaration of final method '" + met.getName() + "'");
+				}
+			}
+			
+		}
 
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTCURBRACKET ) signalError.show("{ expected");
