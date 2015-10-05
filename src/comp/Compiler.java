@@ -21,6 +21,7 @@ public class Compiler {
 		Program program = null;
 		lexer.nextToken();
 		program = program(compilationErrorList);
+				
 		return program;
 	}
 
@@ -121,18 +122,42 @@ public class Compiler {
 		 * MethodDec ::= Qualifier Type Id "("[ FormalParamDec ] ")" "{" StatementList "}" 
 		 * Qualifier ::= [ "static" ]  ( "private" | "public" )
 		 */
+		
+		//3 tipos de qualifier: static, final e (public/private)
+		Symbol finalQualifier = null;
+		Symbol staticQualifier = null;
+		
+		Method met;
+		KraClass superClass = null;
+		
 		if ( lexer.token != Symbol.CLASS ) signalError.show("'class' expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.IDENT )
 			signalError.show(SignalError.ident_expected);
+		
 		String className = lexer.getStringValue();
-		symbolTable.putInGlobal(className, new KraClass(className));
+		String superclassName = null;
+		if (symbolTable.getInGlobal(className) != null) {
+			signalError.show("Class '" + className + "already declared");
+		}
+		
 		lexer.nextToken();
 		if ( lexer.token == Symbol.EXTENDS ) {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
-			String superclassName = lexer.getStringValue();
+			
+			//Herda de si mesmo
+			superclassName = lexer.getStringValue();
+			if (superclassName.equals(className)) {
+				signalError.show("Class '" + className + "' is inheriting from itself");
+			}
+			
+			//Superclasse foi declarada?
+			superClass = symbolTable.getInGlobal(superclassName);
+			if (superClass == null) {
+				signalError.show("SuperClass '" + superclassName + "' is not declared");
+			}		
 
 			lexer.nextToken();
 		}
@@ -140,11 +165,14 @@ public class Compiler {
 			signalError.show("{ expected", true);
 		lexer.nextToken();
 		
-		while (lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
-			//3 tipos de qualifier: static, final e (public/private)
-			Symbol finalQualifier = null;
-			Symbol staticQualifier = null;
+		//symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
+		currentClass = new KraClass(className, null, superClass);
+		
+		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
+		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
+				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
+			f = true; // =)
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -155,20 +183,22 @@ public class Compiler {
 				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
 			}
-		}
-		
-		//verificar se tem final ou static
-		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC) {
 			
 			Symbol qualifier;
 			
 			switch (lexer.token) {
 			case PRIVATE:
 				lexer.nextToken();
+				if (lexer.token == Symbol.STATIC) {
+					signalError.show(signalError.ident_expected);
+				}
 				qualifier = Symbol.PRIVATE;
 				break;
 			case PUBLIC:
 				lexer.nextToken();
+				if (lexer.token == Symbol.STATIC) {
+					signalError.show(signalError.ident_expected);
+				}
 				qualifier = Symbol.PUBLIC;
 				break;
 			default:
@@ -184,21 +214,44 @@ public class Compiler {
 			
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
-				methodDec(t, name, qualifier);				
+				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
+				if (met.getQualifier() == Symbol.PUBLIC) {
+					currentClass.addPublicMethod(met);
+					System.out.println("Metodos publicos:");
+					currentClass.printPublic();
+				} else {
+					currentClass.addPrivateMethod(met);
+					System.out.println("Metodos privados:");
+					currentClass.printPrivate();
+				}
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
-				signalError.show("Attempt to declare a public instance variable");
+				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
 				
 				instanceVarDec(t, name);
-				
-			}
-				
+			}			
 		}
+		
+		//Se qualifier não foi definido, não leu private ou public no while acima
+		if (f == false) {
+			signalError.show("'public', 'private', or '}' expected");
+		}
+		
+		//Se for classe Program, deve ter metodo run()
+		if (currentClass.getName().equals("Program")) {
+			Method runMethod = new Method("run", Type.voidType, Symbol.PUBLIC);
+			runMethod.setParamList(new ParameterList());
+			if (currentClass.searchMethod(runMethod) == null) {
+				signalError.show("Method 'run' was not found in class 'Program'");
+			}
+		}
+		
 		if ( lexer.token != Symbol.RIGHTCURBRACKET )
 			signalError.show("public/private or \"}\" expected");
-		lexer.nextToken();
-
+		lexer.nextToken();		
+		
+		symbolTable.putInGlobal(currentClass.getName(), currentClass);
 	}
 //feito
 	private void instanceVarDec(Type type, String name) {
@@ -251,17 +304,51 @@ public class Compiler {
 		//return listVar;
 	}
 
-	private void methodDec(Type type, String name, Symbol qualifier) {
+	private Method methodDec(Type type, String name, Symbol qualifier, Symbol finalQualifier, Symbol staticQualifier) {
 		/*
 		 * MethodDec ::= Qualifier Return Id "("[ FormalParamDec ] ")" "{"
 		 *                StatementList "}"
 		 */
 		
-		//criar classe para method? ou procurar com um metodo na classe KraClass (documentação especifica assim)
-
+		if (currentClass.getName().equals("Program") && name.equals("run")) {
+			
+			if (qualifier != Symbol.PUBLIC) {
+				signalError.show("Method 'run' of class 'Program' cannot be private");
+			}
+			
+			if (type != Type.voidType) {
+				signalError.show("Method 'run' of class 'Program' with a return " +
+								 "value type different from 'void'");
+			}
+		}
+		
+		Method met = new Method(name, type, qualifier);
+		if (finalQualifier != null) met.setFinal();
+		if (staticQualifier != null) met.setStatic();
+		currentMethod = met;
+		
 		lexer.nextToken();
-		if ( lexer.token != Symbol.RIGHTPAR ) formalParamDec();
-		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
+		if ( lexer.token != Symbol.RIGHTPAR ) {
+			met.setParamList(formalParamDec());
+		}
+		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
+		
+		//Se não for nulo, achou algum parametro igual
+		if (currentClass.searchMethod(met) != null) {
+			
+			if (met.isStatic()) {
+				signalError.show("Redefinition of static method '" + met.getName() +"'");
+			} else {
+				signalError.show("Method '" + met.getName() + "' is being redeclared");
+			}
+		} else if (currentClass.hasSuper()) {
+			if (currentClass.searchMethodS(met) != null) {
+				if (met.isFinal()) {
+					signalError.show("Redeclaration of final method '" + met.getName() + "'");
+				}
+			}
+			
+		}
 
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTCURBRACKET ) signalError.show("{ expected");
@@ -271,6 +358,8 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTCURBRACKET ) signalError.show("} expected");
 
 		lexer.nextToken();
+		
+		return met;
 
 	}
 	
@@ -319,30 +408,40 @@ public class Compiler {
 			
 			varLocalList.add(v);
 			lexer.nextToken();
-			
-			v = null;
-			name = null;
+		
 		}
 		
 		//return varLocalList;
 	}
 
-	private void formalParamDec() {
+	private ParameterList formalParamDec() {
 		// FormalParamDec ::= ParamDec { "," ParamDec }
-
-		paramDec();
+		
+		ParameterList paramList = new ParameterList();
+		
+		paramList.addElement(paramDec());
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
-			paramDec();
+			paramList.addElement(paramDec());
 		}
+		
+		return paramList;
 	}
 
-	private void paramDec() {
+	private Parameter paramDec() {
 		// ParamDec ::= Type Id
-
-		type();
-		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
+		Type t = null;
+		String name = null;
+		
+		t = type();
+		if ( lexer.token != Symbol.IDENT ) {
+			signalError.show("Identifier expected");
+			return new Parameter("Param", t);
+		}
+		name = lexer.getStringValue();
 		lexer.nextToken();
+		
+		return new Parameter(name, t);
 	}
 
 	private Type type() {
@@ -914,6 +1013,8 @@ public class Compiler {
 
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;
-	private SignalError	signalError;
+	private SignalError		signalError;
+	private KraClass 		currentClass;
+	private Method			currentMethod;
 
 }
