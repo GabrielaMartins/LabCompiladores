@@ -3,5 +3,8 @@
 *.kra2
 *.KRA
 *.KRA2
-*/report.txt
+bin/
+bin/tests
+tests/
+/report.txt
 src/comp/Comp.java
