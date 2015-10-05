@@ -342,7 +342,7 @@ public class Compiler {
 				signalError.show("Method '" + met.getName() + "' is being redeclared");
 			}
 		} else if (currentClass.hasSuper()) {
-			if (currentClass.searchMethod(met) != null) {
+			if (currentClass.searchMethodS(met) != null) {
 				if (met.isFinal()) {
 					signalError.show("Redeclaration of final method '" + met.getName() + "'");
 				}
