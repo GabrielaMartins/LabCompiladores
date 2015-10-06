@@ -22,8 +22,8 @@ public class KraClass extends Type {
       return getName();
    }
    
-   public Symbol getQualifier() {
-	   return qualifier;
+   public boolean isFinal() {
+	   return qualifier != null;
    }
    
    public void setInstanceVariableList(InstanceVariableList ivl) {
