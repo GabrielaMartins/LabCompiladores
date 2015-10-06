@@ -322,29 +322,29 @@ public class Compiler {
 			}
 		}
 		
-		Method met = new Method(name, type, qualifier);
-		if (finalQualifier != null) met.setFinal();
-		if (staticQualifier != null) met.setStatic();
-		currentMethod = met;
+		currentMethod = new Method(name, type, qualifier);
+		if (finalQualifier != null) currentMethod.setFinal();
+		if (staticQualifier != null) currentMethod.setStatic();
 		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.RIGHTPAR ) {
-			met.setParamList(formalParamDec());
+			currentMethod.setParamList(formalParamDec());
 		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		
 		//Se não for nulo, achou algum parametro igual
-		if (currentClass.searchMethod(met) != null) {
+		if (currentClass.searchMethod(currentMethod) != null) {
 			
-			if (met.isStatic()) {
-				signalError.show("Redefinition of static method '" + met.getName() +"'");
+			if (currentMethod.isStatic()) {
+				signalError.show("Redefinition of static method '" + currentMethod.getName() +"'");
 			} else {
-				signalError.show("Method '" + met.getName() + "' is being redeclared");
+				signalError.show("Method '" + currentMethod.getName() + "' is being redeclared");
 			}
 		} else if (currentClass.hasSuper()) {
-			if (currentClass.searchMethodS(met) != null) {
-				if (met.isFinal()) {
-					signalError.show("Redeclaration of final method '" + met.getName() + "'");
+			Method searchM;
+			if ( (searchM = currentClass.searchMethodS(currentMethod)) != null) {
+				if (searchM.isFinal()) {
+					signalError.show("Redeclaration of final method '" + searchM.getName() + "'");
 				}
 			}
 			
@@ -359,7 +359,7 @@ public class Compiler {
 
 		lexer.nextToken();
 		
-		return met;
+		return currentMethod;
 
 	}
 	
