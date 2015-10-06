@@ -19,7 +19,11 @@ public class KraClass extends Type {
    }
    
    public String getCname() {
-      return getName();
+	   return getName();
+   }
+   
+   public KraClass getSuper() {
+	   return superClass;
    }
    
    public boolean isFinal() {
@@ -44,13 +48,13 @@ public class KraClass extends Type {
 	   return this.superClass != null;
    }
    
-   public Method searchMethod(Method method) {
+   public Method searchMethod(String name) {
 	   
 	   Iterator<Method> it = publicMethodList.elements();
 	   while(it.hasNext()) {
 		   
 		   Method thisMethod = (Method) it.next();
-		   if (thisMethod.compareTo(method) == 0) {
+		   if (thisMethod.getName().equals(name)) {
 			   return thisMethod;
 		   }
 	   }
@@ -59,7 +63,7 @@ public class KraClass extends Type {
 	   while(it.hasNext()) {
 		   
 		   Method thisMethod = (Method) it.next();
-		   if (thisMethod.compareTo(method) == 0) {
+		   if (thisMethod.getName().equals(name)) {
 			   return thisMethod;
 		   }
 	   }
@@ -67,10 +71,10 @@ public class KraClass extends Type {
 	   return null;
    }
    
-   public Method searchMethodS(Method method) {
+   public Method searchMethodS(String name) {
 	   
 	   if (superClass != null) {
-		   return superClass.searchMethod(method);
+		   return superClass.searchMethod(name);
 	   }
 	   
 	   return null;
