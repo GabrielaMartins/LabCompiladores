@@ -124,11 +124,17 @@ public class Compiler {
 		 */
 		
 		//3 tipos de qualifier: static, final e (public/private)
+		Symbol classQualifier = null;
 		Symbol finalQualifier = null;
 		Symbol staticQualifier = null;
 		
 		Method met;
 		KraClass superClass = null;
+		
+		if ( lexer.token == Symbol.FINAL) {
+			classQualifier = Symbol.FINAL;
+			lexer.nextToken();
+		}
 		
 		if ( lexer.token != Symbol.CLASS ) signalError.show("'class' expected");
 		lexer.nextToken();
@@ -166,7 +172,7 @@ public class Compiler {
 		lexer.nextToken();
 		
 		//symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
-		currentClass = new KraClass(className, null, superClass);
+		currentClass = new KraClass(className, classQualifier, superClass);
 		
 		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
@@ -310,6 +316,8 @@ public class Compiler {
 		 *                StatementList "}"
 		 */
 		
+		//Verifica se metodo "run" é void e tem qualifier "public"
+		//Erros ER-SEM80 e ER-SEM81
 		if (currentClass.getName().equals("Program") && name.equals("run")) {
 			
 			if (qualifier != Symbol.PUBLIC) {
@@ -322,6 +330,11 @@ public class Compiler {
 			}
 		}
 		
+		//ER-SEM85: Método final em classe final
+		if (currentClass.isFinal() && finalQualifier != null) {
+			signalError.show("'final' method in a 'final' class");
+		}
+		
 		currentMethod = new Method(name, type, qualifier);
 		if (finalQualifier != null) currentMethod.setFinal();
 		if (staticQualifier != null) currentMethod.setStatic();
@@ -331,6 +344,12 @@ public class Compiler {
 			currentMethod.setParamList(formalParamDec());
 		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
+		
+		/*Tratamento dos erros:
+		* ER-SEM73: Redefinição de método static
+		* ER-SEM32: Método sendo redeclarado
+		* ER-SEM84: Métdo final sendo redefinido na classe derivada
+		*/
 		
 		//Se não for nulo, achou algum parametro igual
 		if (currentClass.searchMethod(currentMethod) != null) {
