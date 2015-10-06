@@ -153,7 +153,7 @@ public class Compiler {
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
 			
-			//Herda de si mesmo
+			//ER-SEM27: Classe herda de si mesma
 			superclassName = lexer.getStringValue();
 			if (superclassName.equals(className)) {
 				signalError.show("Class '" + className + "' is inheriting from itself");
@@ -244,11 +244,9 @@ public class Compiler {
 			signalError.show("'public', 'private', or '}' expected");
 		}
 		
-		//Se for classe Program, deve ter metodo run()
+		//ER-SEM77: Se for classe Program, deve ter metodo run()
 		if (currentClass.getName().equals("Program")) {
-			Method runMethod = new Method("run", Type.voidType, Symbol.PUBLIC);
-			runMethod.setParamList(new ParameterList());
-			if (currentClass.searchMethod(runMethod) == null) {
+			if (currentClass.searchMethod("run") == null) {
 				signalError.show("Method 'run' was not found in class 'Program'");
 			}
 		}
@@ -348,11 +346,13 @@ public class Compiler {
 		/*Tratamento dos erros:
 		* ER-SEM73: Redefinição de método static
 		* ER-SEM32: Método sendo redeclarado
-		* ER-SEM84: Métdo final sendo redefinido na classe derivada
+		* ER-SEM84: Método final sendo redefinido na classe derivada
+		* 
+		* ER-SEM29 e ER-SEM30: Erro na redefinição de métodos com assinaturas diferentes
 		*/
 		
 		//Se não for nulo, achou algum parametro igual
-		if (currentClass.searchMethod(currentMethod) != null) {
+		if (currentClass.searchMethod(currentMethod.getName()) != null) {
 			
 			if (currentMethod.isStatic()) {
 				signalError.show("Redefinition of static method '" + currentMethod.getName() +"'");
@@ -361,9 +361,16 @@ public class Compiler {
 			}
 		} else if (currentClass.hasSuper()) {
 			Method searchM;
-			if ( (searchM = currentClass.searchMethodS(currentMethod)) != null) {
+			if ( (searchM = currentClass.searchMethodS(currentMethod.getName())) != null) {
 				if (searchM.isFinal()) {
 					signalError.show("Redeclaration of final method '" + searchM.getName() + "'");
+				}
+				//Se não é final pode ser redefinido na classe derivada, mas com mesma assinatura
+				if (searchM.compareTo(currentMethod) != 0) {
+					signalError.show("Method '" + currentMethod.getName() + "' of subclass '" 
+									 + currentClass.getCname() + "' has a signature different from "
+									 + "method inherited from superclass '" 
+									 + currentClass.getSuper().getName() + "'");
 				}
 			}
 			
