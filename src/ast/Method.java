@@ -71,7 +71,7 @@ public class Method implements Comparable<Method> {
 	public int compareTo(Method other) {
 		int thisParamSize, otherParamSize;
     	
-    	if (this.name != other.getName()) {	
+    	if (! this.name.equals(other.getName())) {	
     		return this.name.compareTo(other.getName());
     	}
     	
