@@ -396,6 +396,7 @@ public class Compiler {
 		Variable v;
 
 		Type type = type();
+
 		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
 		
 		//verifica de váriável já foi declarada
@@ -421,7 +422,8 @@ public class Compiler {
 			lexer.nextToken();
 			
 			if ( lexer.token != Symbol.IDENT )
-				signalError.show("Identifier expected");
+				//ER-SIN02: arrumando mensagem de erro
+				signalError.show("Missing identifier");
 			name = lexer.getStringValue();
 			v = (Variable)symbolTable.get(name);
 			
@@ -435,6 +437,10 @@ public class Compiler {
 			varLocalList.add(v);
 			lexer.nextToken();
 		
+		}
+		
+		if(lexer.token != Symbol.SEMICOLON){
+			signalError.show("Missing ';'");
 		}
 		
 		//return varLocalList;
@@ -472,7 +478,7 @@ public class Compiler {
 
 	private Type type() {
 		// Type ::= BasicType | Id
-		Type result;
+		Type result = null;
 
 		switch (lexer.token) {
 		case VOID:
@@ -491,9 +497,18 @@ public class Compiler {
 			// # corrija: faça uma busca na TS para buscar a classe
 			// IDENT deve ser uma classe.
 			//imagino que a classe retorna um tipo "ident" e o nome do tipo é armazenado em algum lugar 
-			//String nameType = lexer.getStringValue();
-			//result = Type.identType;
-			result = null;
+			String nameType = lexer.getStringValue();
+			
+			
+			//corrigindo: ER-SEM18
+			
+			if(isType(nameType)== true){
+				//result = Type.identType;
+				result = null;
+			}else{
+				
+				signalError.show("Type " +nameType+ " was not found");
+			}
 			break;
 		default:
 			signalError.show("Type expected");
@@ -587,6 +602,13 @@ public class Compiler {
 				|| lexer.token == Symbol.STRING ||
 				// token é uma classe declarada textualmente antes desta
 				// instrução
+				
+				//a merda tá dando aqui :
+				//tem que verificar se o ident é um tipo, se ele for, manda pro localdec
+				//mas se ele não for, já assume que é uma variável. Mas pode ser que nem 
+				//Err-SEM18, onde é um tipo que não tem uma classe, então teria que dar um erro
+				//de não ter encontrado o tipo. Se eu fizer a verificação no else, ele pode
+				//ser uma variável e não um tipo
 				(lexer.token == Symbol.IDENT && isType(lexer.getStringValue())) ) {
 			/*
 			 * uma declaração de variável. 'lexer.token' é o tipo da variável
