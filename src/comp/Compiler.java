@@ -597,7 +597,9 @@ public class Compiler {
 	 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ] | LocalDec
 	 */
 	private Expr assignExprLocalDec() {
-
+		Expr left = null;
+		Expr right = null;
+		
 		if ( lexer.token == Symbol.INT || lexer.token == Symbol.BOOLEAN
 				|| lexer.token == Symbol.STRING ||
 				// token é uma classe declarada textualmente antes desta
@@ -630,11 +632,21 @@ public class Compiler {
 					signalError.show("Variable " + name + " was not declared");
 				}
 			}
-			expr();
+			
+			left = expr();
 			
 			if ( lexer.token == Symbol.ASSIGN ) {
 				lexer.nextToken();
-				expr();
+				right = expr();
+				//ER-SEM04
+				if(left.getType() != right.getType()){
+					if(left.getType()== Type.booleanType && right.getType() == Type.intType){
+						signalError.show("\'int\' cannot be assigned to \'boolean\'");
+					}
+					if(left.getType()== Type.intType && right.getType() == Type.booleanType){
+						signalError.show("Type error: value of the right-hand side is not subtype of the variable of the left-hand side.");
+					}
+				}
 				if ( lexer.token != Symbol.SEMICOLON )
 					signalError.show("';' expected", true);
 				else
@@ -642,6 +654,7 @@ public class Compiler {
 				
 			}
 		}
+		
 		return null;
 	}
 
@@ -940,7 +953,11 @@ public class Compiler {
 			if ( lexer.token != Symbol.DOT ) {
 				// Id
 				// retorne um objeto da ASA que representa um identificador
-				return null;
+				
+				//Arrumado: colocando como retorno um variableExpr 
+				Variable var = symbolTable.getInLocal(firstId);
+				
+				return new VariableExpr(var);
 			}
 			else { // Id "."
 				lexer.nextToken(); // coma o "."
