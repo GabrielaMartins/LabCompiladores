@@ -163,7 +163,10 @@ public class Compiler {
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
 			
-			//ER-SEM27: Classe herda de si mesma
+			/*
+			 * ER-SEM27: Classe herda de si mesma?
+			 * ER-SEM83: Classe herda de classe final?
+			 */
 			superclassName = lexer.getStringValue();
 			if (superclassName.equals(className)) {
 				signalError.show("Class '" + className + "' is inheriting from itself");
@@ -173,7 +176,12 @@ public class Compiler {
 			superClass = symbolTable.getInGlobal(superclassName);
 			if (superClass == null) {
 				signalError.show("SuperClass '" + superclassName + "' is not declared");
-			}		
+			} else {
+				if (superClass.isFinal()) {
+					signalError.show("Class '" + className + "' is inheriting from final class "
+								 	 + "'" + superclassName + "'");
+				}
+			}
 
 			lexer.nextToken();
 		}
@@ -185,6 +193,7 @@ public class Compiler {
 		currentClass = new KraClass(className, classQualifier, superClass);
 		
 		if (lexer.token == Symbol.RIGHTCURBRACKET) {
+			lexer.nextToken();
 			symbolTable.putInGlobal(currentClass.getName(), currentClass);
 			
 			return currentClass;
