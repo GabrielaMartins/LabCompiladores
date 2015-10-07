@@ -28,22 +28,32 @@ public class Compiler {
 	private Program program(ArrayList<CompilationError> compilationErrorList) {
 		// Program ::= KraClass { KraClass }
 		ArrayList<MetaobjectCall> metaobjectCallList = new ArrayList<>();
-		ArrayList<KraClass> kraClassList = new ArrayList<>();
+		KraClassList kraClassList = new KraClassList();
+		
 		Program program = new Program(kraClassList, metaobjectCallList, compilationErrorList);
 		try {
 			while ( lexer.token == Symbol.MOCall ) {
 				metaobjectCallList.add(metaobjectCall());
 			}
-			classDec();
-			while ( lexer.token == Symbol.CLASS )
-				classDec();
+			
+			kraClassList.addElement(classDec());
+			while ( lexer.token == Symbol.CLASS ) {
+				kraClassList.addElement(classDec());
+			}
+			
 			if ( lexer.token != Symbol.EOF ) {
 				signalError.show("End of file expected");
+			}
+			
+			//ER-SEM78: Programa sem classe Program
+			if (kraClassList.getElement("Program") == null) {
+				signalError.show("Source code without a class 'Program'");
 			}
 		}
 		catch( RuntimeException e) {
 			// if there was an exception, there is a compilation signalError
 		}
+		
 		return program;
 	}
 
@@ -108,7 +118,7 @@ public class Compiler {
 		return new MetaobjectCall(name, metaobjectParamList);
 	}
 
-	private void classDec() {
+	private KraClass classDec() {
 		// Note que os métodos desta classe não correspondem exatamente às
 		// regras
 		// da gramática. Este método classDec, por exemplo, implementa
@@ -256,6 +266,8 @@ public class Compiler {
 		lexer.nextToken();		
 		
 		symbolTable.putInGlobal(currentClass.getName(), currentClass);
+		
+		return currentClass;
 	}
 //feito
 	private void instanceVarDec(Type type, String name) {

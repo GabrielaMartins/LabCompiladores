@@ -4,8 +4,13 @@ import java.util.*;
 import comp.CompilationError;
 
 public class Program {
+	
+	private KraClassList classList;
+	private ArrayList<MetaobjectCall> metaobjectCallList;
+	
+	ArrayList<CompilationError> compilationErrorList;
 
-	public Program(ArrayList<KraClass> classList, ArrayList<MetaobjectCall> metaobjectCallList, 
+	public Program(KraClassList classList, ArrayList<MetaobjectCall> metaobjectCallList, 
 			       ArrayList<CompilationError> compilationErrorList) {
 		this.classList = classList;
 		this.metaobjectCallList = metaobjectCallList;
@@ -19,7 +24,7 @@ public class Program {
 	public void genC(PW pw) {
 	}
 	
-	public ArrayList<KraClass> getClassList() {
+	public KraClassList getClassList() {
 		return classList;
 	}
 
@@ -36,12 +41,4 @@ public class Program {
 	public ArrayList<CompilationError> getCompilationErrorList() {
 		return compilationErrorList;
 	}
-
-	
-	private ArrayList<KraClass> classList;
-	private ArrayList<MetaobjectCall> metaobjectCallList;
-	
-	ArrayList<CompilationError> compilationErrorList;
-
-	
 }
