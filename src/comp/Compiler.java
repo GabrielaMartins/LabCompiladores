@@ -184,6 +184,12 @@ public class Compiler {
 		//symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
 		currentClass = new KraClass(className, classQualifier, superClass);
 		
+		if (lexer.token == Symbol.RIGHTCURBRACKET) {
+			symbolTable.putInGlobal(currentClass.getName(), currentClass);
+			
+			return currentClass;
+		}
+		
 		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
@@ -276,8 +282,7 @@ public class Compiler {
 		InstanceVariable var;
 		InstanceVariableList listVar = new InstanceVariableList();
 		
-		var = (InstanceVariable)symbolTable.get(name);
-		
+		var = (InstanceVariable) symbolTable.get(name);
 		if(var != null){
 			var = new InstanceVariable(name, type);
 			symbolTable.putInLocal(name, var);
@@ -290,6 +295,7 @@ public class Compiler {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
+			
 			String variableName = lexer.getStringValue();
 			var = (InstanceVariable) symbolTable.get(variableName);
 			
@@ -298,14 +304,10 @@ public class Compiler {
 				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type);
 				symbolTable.putInLocal(variableName, var);
-				listVar.addElement(var);
-				
-				var = null;
-				variableName = null;
-				
-			} else
+				listVar.addElement(var);				
+			} else {
 				signalError.show("Variable " + name + " is being redeclared");
-			
+			}			
 			
 			lexer.nextToken();
 		}
@@ -325,24 +327,15 @@ public class Compiler {
 		 * MethodDec ::= Qualifier Return Id "("[ FormalParamDec ] ")" "{"
 		 *                StatementList "}"
 		 */
-		
-		//Verifica se metodo "run" é void e tem qualifier "public"
-		//Erros ER-SEM80 e ER-SEM81
-		if (currentClass.getName().equals("Program") && name.equals("run")) {
 			
-			if (qualifier != Symbol.PUBLIC) {
-				signalError.show("Method 'run' of class 'Program' cannot be private");
-			}
-			
-			if (type != Type.voidType) {
-				signalError.show("Method 'run' of class 'Program' with a return " +
-								 "value type different from 'void'");
-			}
-		}
-		
 		//ER-SEM85: Método final em classe final
 		if (currentClass.isFinal() && finalQualifier != null) {
 			signalError.show("'final' method in a 'final' class");
+		}
+		
+		//ER-SEM31: Método com nome de variável
+		if (symbolTable.getInLocal(name) != null) {
+			signalError.show("Method '" + name + "' has name equal to an instance variable");
 		}
 		
 		currentMethod = new Method(name, type, qualifier);
@@ -354,6 +347,32 @@ public class Compiler {
 			currentMethod.setParamList(formalParamDec());
 		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
+		
+		/* Tratamento de erros no método run()
+		 * ER-SEM79: run() não deve ter parâmetros
+		 * ER-SEM80: Retorno diferente de void
+		 * ER-SEM81: Metodo deve ser public
+		 * ER-SEM82: run não pode ser static
+		 */
+		if (currentClass.getName().equals("Program") && name.equals("run")) {
+
+			if (staticQualifier != null) {
+				signalError.show("Method 'run' cannot be static");
+			}
+
+			if (qualifier != Symbol.PUBLIC) {
+				signalError.show("Method 'run' of class 'Program' cannot be private");
+			}
+
+			if (type != Type.voidType) {
+				signalError.show("Method 'run' of class 'Program' with a return " +
+						"value type different from 'void'");
+			}
+			
+			if (currentMethod.getParamList().getSize() > 0) {
+				signalError.show("Method 'run' of class 'Program' cannot take parameters");
+			}
+		}
 		
 		/*Tratamento dos erros:
 		* ER-SEM73: Redefinição de método static
