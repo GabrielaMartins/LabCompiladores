@@ -719,7 +719,7 @@ public class Compiler {
 					KraClass typeRight = symbolTable.getInGlobal(typeRightName);
 					
 					
-					if(typeLeft.getSuper().getName() == typeRight.getName()){
+					if((typeLeft.getSuper() != null ) && typeLeft.getSuper().getName() == typeRight.getName()){
 						signalError.show("Type error: type of the right-hand side of the assignment is not a subclass of the left-hand side");
 					}
 					
@@ -969,6 +969,12 @@ public class Compiler {
 		case NOT:
 			lexer.nextToken();
 			e = expr();
+			//Gabriela
+			//ER-SEM15.KRA
+			if(e.getType()==Type.intType){
+				signalError.show("Operator '!' does not accepts 'int' values");
+			}
+			//Gabriela$
 			return new UnaryExpr(e, Symbol.NOT);
 			// ObjectCreation ::= "new" Id "(" ")"
 		case NEW:
@@ -977,21 +983,37 @@ public class Compiler {
 				signalError.show("Identifier expected");
 
 			String className = lexer.getStringValue();
+			
 			/*
 			 * // encontre a classe className in symbol table KraClass 
 			 *      aClass = symbolTable.getInGlobal(className); 
 			 *      if ( aClass == null ) ...
 			 */
-
-			lexer.nextToken();
-			if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
-			lexer.nextToken();
-			if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
-			lexer.nextToken();
+				
+			//Gabriela
+			//ER-SEM37 - 38 - 86
+			KraClass aClass = symbolTable.getInGlobal(className);
+			if(aClass == null){
+				signalError.show("Class '" + className + "' was not found");
+			}
+			
+			Type t = type();
+			
+			exprList = this.realParameters();
+			
+			//lexer.nextToken();
+			
+			System.out.println("O que temos aqui é" + lexer.token);
+			
+			
 			/*
 			 * return an object representing the creation of an object
 			 */
-			return null;
+			
+			return new NewExpr(t, exprList);
+			
+			//$Gabriela
+			
 			/*
           	 * PrimaryExpr ::= "super" "." Id "(" [ ExpressionList ] ")"  | 
           	 *                 Id  |
@@ -1046,10 +1068,19 @@ public class Compiler {
 				if ( lexer.token != Symbol.IDENT ) {
 					signalError.show("Identifier expected");
 				}
+				
 				else {
 					// Id "." Id
 					lexer.nextToken();
 					ident = lexer.getStringValue();
+					//Gabriela
+					KraClass c = getClass(firstId);
+					Method m = c.callMethod(ident);
+					if(m == null){
+						signalError.show("Method 'set' was not found in class 'A' or its superclasses");
+					}
+					//$Gabriela
+					
 					if ( lexer.token == Symbol.DOT ) {
 						// Id "." Id "." Id "(" [ ExpressionList ] ")"
 						/*
@@ -1157,6 +1188,21 @@ public class Compiler {
 				|| token == Symbol.IDENT || token == Symbol.LITERALSTRING;
 
 	}
+	
+	//Gabriela
+	private KraClass getClass(String name){
+		String varType = null;
+		Variable var = symbolTable.getInLocal(name);
+		if(var != null){
+			varType = var.getType().getName();
+		}
+		
+		KraClass className = symbolTable.getInGlobal(varType);
+		
+		return className;
+	}
+	
+	//$Gabriela
 
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;
