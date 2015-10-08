@@ -638,6 +638,23 @@ public class Compiler {
 	private boolean isType(String name) {
 		return this.symbolTable.getInGlobal(name) != null;
 	}
+	
+	/*
+	 * retorna true se 'name' é uma variável declarada localmente
+	 * ou uma variável de instancia da classe corrente.
+	 */
+	private boolean isVariable(String name) {
+		
+		if (this.symbolTable.getInLocal(name) != null) {
+			return true;
+		}
+		
+		return this.currentClass.searchVariable(name) != null;
+	}
+	
+	private boolean isMethod(String name) {
+		return currentClass.callMethod(name) != null;
+	}
 
 	/*
 	 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ] | LocalDec
@@ -675,7 +692,12 @@ public class Compiler {
 				String name = lexer.getStringValue();
 				Variable var = symbolTable.getInLocal(name);
 				if(var == null){
-					signalError.show("Variable " + name + " was not declared");
+					//Valdeir
+					var = currentClass.searchVariable(name);
+					if (var == null) {
+						signalError.show("Variable " + name + " was not declared");
+					}
+					//Valdeir$
 				}
 			}
 			
@@ -1005,6 +1027,12 @@ public class Compiler {
 			 */
 		case SUPER:
 			// "super" "." Id "(" [ ExpressionList ] ")"
+			//Valdeir
+			if (currentClass.getSuper() == null) {
+				signalError.show("'super' used in class '" + currentClass.getName()
+								 + "' that does not have a superclass");
+			}
+			//Valdeir$
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
 				signalError.show("'.' expected");
@@ -1013,7 +1041,16 @@ public class Compiler {
 				lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
+			
+			//Valdeir
+			//ER-SEM60: Método privado em super
 			messageName = lexer.getStringValue();
+			if (currentClass.getSuper().callMethod(messageName) == null) {
+				signalError.show("Method '" + messageName + "' was not found in the "
+								 + "public interface of '" + currentClass.getName()
+								 + "' or its superclasses");
+			}
+			//Valdeir$
 			/*
 			 * para fazer as conferências semânticas, procure por 'messageName'
 			 * na superclasse/superclasse da superclasse etc
@@ -1038,6 +1075,11 @@ public class Compiler {
 				
 				//Arrumado: colocando como retorno um variableExpr 
 				Variable var = symbolTable.getInLocal(firstId);
+				//Valdeir
+				if (var == null) {
+					var = currentClass.searchVariable(firstId);
+				}
+				//Valdeir$
 				
 				return new VariableExpr(var);
 			}
@@ -1048,8 +1090,18 @@ public class Compiler {
 				}
 				else {
 					// Id "." Id
+					
+					//Valdeir
+					//Se não é uma classe é um tipo básico
+					//ER-SEM07: Enviando mensagem para classe básica
+					KraClass idType = getClass(firstId);
+					if (idType == null) {
+						signalError.show("Message send to a non-object receiver");
+					}
+					//Valdeir$
+									
 					lexer.nextToken();
-					ident = lexer.getStringValue();
+					ident = lexer.getStringValue();					
 					if ( lexer.token == Symbol.DOT ) {
 						// Id "." Id "." Id "(" [ ExpressionList ] ")"
 						/*
@@ -1062,13 +1114,32 @@ public class Compiler {
 						lexer.nextToken();
 						if ( lexer.token != Symbol.IDENT )
 							signalError.show("Identifier expected");
+						
+						//Valdeir
 						messageName = lexer.getStringValue();
+						
+						//Valdeir$
 						lexer.nextToken();
 						exprList = this.realParameters();
 
 					}
 					else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
+						
+						//Valdeir
+						//ER-SEM59: Chamada a método privado
+						Method m = idType.callMethod(ident);
+						if (m == null) {
+							signalError.show("Method '" + ident + "' was not found in the "
+											+ "public interface of '" + idType.getName()
+											+ "' or its superclasses");
+						}
+						
+						/*if (m.isStatic() && isType(firstId) == false) {
+							
+						}*/
+						//Valdeir$
+						
 						exprList = this.realParameters();
 						/*
 						 * para fazer as conferências semânticas, procure por
@@ -1157,6 +1228,21 @@ public class Compiler {
 				|| token == Symbol.IDENT || token == Symbol.LITERALSTRING;
 
 	}
+	
+	//Gabriela
+	private KraClass getClass(String name) {
+		String varType = null;
+		Variable var = symbolTable.getInLocal(name);
+		if (var != null) {
+			varType = var.getType().getName();
+		}
+		
+		KraClass className = symbolTable.getInGlobal(varType);
+		
+		return className;
+	}
+	
+	//Gabriela$
 
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;

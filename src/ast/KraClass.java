@@ -48,7 +48,67 @@ public class KraClass extends Type {
 	   return this.superClass != null;
    }
    
+   /**
+    * Verifica se é possível chamar o método passado como parâmetro
+    * na interface pública
+    * @return Methodo encontrada
+    * @param Nome do método para buscar
+    */
+   public Method callMethod(String name) {
+	   Method m;
+	   
+	   m = searchInPublic(name);
+	   if (m != null) {
+		   return m;
+	   }
+	   
+	   if (superClass == null) {
+		   return null;
+	   }
+	   
+	   return superClass.callMethod(name);
+	   
+   }
+   
+   private Method searchInPublic(String name) {
+	   
+	   Iterator<Method> it = publicMethodList.elements();
+	   while(it.hasNext()) {
+		   
+		   Method thisMethod = (Method) it.next();
+		   if (thisMethod.getName().equals(name)) {
+			   return thisMethod;
+		   }
+	   }
+	   
+	   return null;
+   }
+   
+   private Method searchInPrivate(String name) {
+	   
+	   Iterator<Method> it = privateMethodList.elements();
+	   while(it.hasNext()) {
+		   
+		   Method thisMethod = (Method) it.next();
+		   if (thisMethod.getName().equals(name)) {
+			   return thisMethod;
+		   }
+	   }
+	   
+	   return null;
+   }
+   
    public Method searchMethod(String name) {
+	   
+	   Method m;
+	   if ( (m = searchInPublic(name)) != null ) {
+		   return m;
+	   }
+	   
+	   return searchInPrivate(name);
+   }
+   
+   /*public Method searchMethod(String name) {
 	   
 	   Iterator<Method> it = publicMethodList.elements();
 	   while(it.hasNext()) {
@@ -69,7 +129,7 @@ public class KraClass extends Type {
 	   }
 	   
 	   return null;
-   }
+   }*/
    
    public Method searchMethodS(String name) {
 	   
