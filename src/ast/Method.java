@@ -80,21 +80,21 @@ public class Method implements Comparable<Method> {
     	}
     	
     	thisParamSize = this.getParamList().getSize();
-    	otherParamSize = this.getParamList().getSize();
+    	otherParamSize = other.getParamList().getSize();
     	if (thisParamSize != otherParamSize ) {
     		return Integer.compare(thisParamSize, otherParamSize);
     	}
     	
     	Iterator<Parameter> thisIt, otherIt;
     	thisIt = this.getParamList().elements();
-    	otherIt = this.getParamList().elements();
+    	otherIt = other.getParamList().elements();
     	
     	while(thisIt.hasNext() && otherIt.hasNext()) {
     		
     		Parameter thisParam = (Parameter) thisIt.next();
     		Parameter otherParam = (Parameter) otherIt.next();
     		if (thisParam.getType() != otherParam.getType()) {
-    			return thisParam.getType().getName().compareTo(otherParam.getName());
+    			return thisParam.getType().getName().compareTo(otherParam.getType().getName());
     		}
     		thisParamSize--;
     		otherParamSize--;
