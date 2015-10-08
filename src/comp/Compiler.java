@@ -174,6 +174,12 @@ public class Compiler {
 		//symbolTable.putInGlobal(className, new KraClass(className, null, superClass));
 		currentClass = new KraClass(className, classQualifier, superClass);
 		
+		if ( lexer.token == Symbol.RIGHTCURBRACKET ) {
+			lexer.nextToken();
+			symbolTable.putInGlobal(currentClass.getName(), currentClass);
+			return;
+		}
+		
 		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
@@ -504,7 +510,7 @@ public class Compiler {
 			
 			if(isType(nameType)== true){
 				//result = Type.identType;
-				result = null;
+				result = new TypeIdent(nameType);
 			}else{
 				
 				signalError.show("Type " +nameType+ " was not found");
@@ -581,6 +587,11 @@ public class Compiler {
 			compositeStatement();
 			break;
 		default:
+			//ER-SEM06
+			if(lexer.token == Symbol.LITERALINT || lexer.token == Symbol.LITERALSTRING ||
+			lexer.token == Symbol.FALSE || lexer.token == Symbol.TRUE)
+				signalError.show("'operator expected' or 'variable expected at the left-hand side of a assignment'");
+			
 			signalError.show("Statement expected");
 		}
 	}
@@ -597,7 +608,7 @@ public class Compiler {
 	 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ] | LocalDec
 	 */
 	private Expr assignExprLocalDec() {
-		Expr left = null;
+   		Expr left = null;
 		Expr right = null;
 		
 		if ( lexer.token == Symbol.INT || lexer.token == Symbol.BOOLEAN
@@ -646,9 +657,41 @@ public class Compiler {
 					if(left.getType()== Type.intType && right.getType() == Type.booleanType){
 						signalError.show("Type error: value of the right-hand side is not subtype of the variable of the left-hand side.");
 					}
+					
+					if(left.getType()instanceof TypeIdent && 
+							(right.getType() == Type.intType || right.getType() == Type.booleanType || right.getType() == Type.stringType)){
+						signalError.show("Type error: the type of the expression of the right-hand side is a basic type and the type of the variable of the left-hand side is a class");
+					}
+					
+					if((left.getType() == Type.intType || left.getType() == Type.booleanType || left.getType() == Type.stringType) &&
+							right.getType()instanceof TypeIdent){
+						signalError.show("Type error: type of the left-hand side of the assignment is a basic type and the type of the right-hand side is a class");
+					}
+				
+					//ER-SEM43.KRA
+					if((left.getType() == Type.intType || left.getType() == Type.booleanType || left.getType() == Type.stringType) && 
+							right.getType()== Type.nullType){
+						signalError.show("Type error: 'null' cannot be assigned to a variable of a basic type");
+					}
 				}
+				
+				//ER-SEM38
+				if(left.getType() instanceof TypeIdent && right.getType() instanceof TypeIdent){
+					String typeLeftName = left.getType().getName();
+					String typeRightName = right.getType().getName();
+					
+					KraClass typeLeft = symbolTable.getInGlobal(typeLeftName);
+					KraClass typeRight = symbolTable.getInGlobal(typeRightName);
+					
+					
+					if(typeLeft.getSuper().getName() == typeRight.getName()){
+						signalError.show("Type error: type of the right-hand side of the assignment is not a subclass of the left-hand side");
+					}
+					
+				}
+				
 				if ( lexer.token != Symbol.SEMICOLON )
-					signalError.show("';' expected", true);
+					signalError.show("Missing ';'", true);
 				else
 					lexer.nextToken();
 				
@@ -670,11 +713,15 @@ public class Compiler {
 	}
 
 	private void whileStatement() {
-
+		//ER-SEM11.KRA
+		Expr condition;
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
-		expr();
+		condition = expr();
+		if(condition.getType()!= Type.booleanType){
+			signalError.show("non-boolean expression in  'while' command");
+		}
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		statement();

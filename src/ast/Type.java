@@ -11,8 +11,8 @@ abstract public class Type {
     public static Type stringType = new TypeString();
     public static Type voidType = new TypeVoid();
     public static Type undefinedType = new TypeUndefined();
-    //acrescentar type ident
-
+    public static Type nullType = new TypeNull();
+    
     public String getName() {
         return name;
     }
