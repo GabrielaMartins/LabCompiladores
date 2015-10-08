@@ -260,7 +260,8 @@ public class Compiler {
 				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
 				
-				instanceVarDec(t, name);
+				currentClass.setInstanceVariableList(instanceVarDec(t, name));
+				//instanceVarDec(t, name);
 			}			
 		}
 		
@@ -285,14 +286,14 @@ public class Compiler {
 		return currentClass;
 	}
 //feito
-	private void instanceVarDec(Type type, String name) {
+	private InstanceVariableList instanceVarDec(Type type, String name) {
 		// InstVarDec ::= [ "static" ] "private" Type IdList ";"
 		
 		InstanceVariable var;
 		InstanceVariableList listVar = new InstanceVariableList();
 		
-		var = (InstanceVariable) symbolTable.get(name);
-		if(var != null){
+		var = (InstanceVariable) symbolTable.getInLocal(name);
+		if(var == null){
 			var = new InstanceVariable(name, type);
 			symbolTable.putInLocal(name, var);
 			listVar.addElement(var);
@@ -306,7 +307,7 @@ public class Compiler {
 				signalError.show("Identifier expected");
 			
 			String variableName = lexer.getStringValue();
-			var = (InstanceVariable) symbolTable.get(variableName);
+			var = (InstanceVariable) symbolTable.getInLocal(variableName);
 			
 			if (var == null) {
 				//Se a variável não está na tabela então coloca
@@ -328,7 +329,7 @@ public class Compiler {
 		//Após processar as variáveis de instância, já pode limpar a localTable.
 		symbolTable.removeLocalIdent();
 		
-		//return listVar;
+		return listVar;
 	}
 
 	private Method methodDec(Type type, String name, Symbol qualifier, Symbol finalQualifier, Symbol staticQualifier) {
@@ -343,7 +344,7 @@ public class Compiler {
 		}
 		
 		//ER-SEM31: Método com nome de variável
-		if (symbolTable.getInLocal(name) != null) {
+		if (currentClass.searchVariable(name) != null) {
 			signalError.show("Method '" + name + "' has name equal to an instance variable");
 		}
 		

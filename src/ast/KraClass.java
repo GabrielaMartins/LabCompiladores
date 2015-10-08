@@ -13,7 +13,7 @@ public class KraClass extends Type {
       super(name);
       this.qualifier = qualifier;
       this.superClass = superClass;
-      this.instanceVariableList = null;
+      this.instanceVariableList = new InstanceVariableList();
       this.publicMethodList = new MethodList();
       this.privateMethodList = new MethodList();
    }
@@ -75,6 +75,24 @@ public class KraClass extends Type {
 	   
 	   if (superClass != null) {
 		   return superClass.searchMethod(name);
+	   }
+	   
+	   return null;
+   }
+   
+   public InstanceVariable searchVariable(String name) {
+	   
+	   if (instanceVariableList == null) {
+		   return null;
+	   }
+	   
+	   Iterator<InstanceVariable> it = instanceVariableList.elements();
+	   while(it.hasNext()) {
+		   
+		   InstanceVariable var = (InstanceVariable) it.next();
+		   if (var.getName().equals(name)) {
+			   return var;
+		   }
 	   }
 	   
 	   return null;
