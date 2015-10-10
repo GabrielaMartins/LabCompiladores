@@ -929,10 +929,10 @@ public class Compiler {
 			//Gabriela ERR-SEM09 -erro de linha
 			Expr right = signalFactor();
 			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
-				signalError.show("type '" + left.getType() + "' does not support operator '" + op.toString()+ "'");
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
 			if(left.getType()!= Type.booleanType && op == Symbol.AND){
-				signalError.show("type '" + left.getType() + "' does not support operator '&&'");
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
 			}
 			//$Gabriela
 			left = new CompositeExpr(left, op, right);
