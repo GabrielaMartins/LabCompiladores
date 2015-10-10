@@ -135,8 +135,6 @@ public class Compiler {
 		
 		//3 tipos de qualifier: static, final e (public/private)
 		Symbol classQualifier = null;
-		Symbol finalQualifier = null;
-		Symbol staticQualifier = null;
 		
 		Method met;
 		KraClass superClass = null;
@@ -203,6 +201,10 @@ public class Compiler {
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
+			Symbol qualifier;
+			Symbol finalQualifier = null;
+			Symbol staticQualifier = null;
+			
 			f = true; // =)
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
@@ -214,9 +216,7 @@ public class Compiler {
 				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
 			}
-			
-			Symbol qualifier;
-			
+					
 			switch (lexer.token) {
 			case PRIVATE:
 				lexer.nextToken();
@@ -926,13 +926,13 @@ public class Compiler {
 		while ((op = lexer.token) == Symbol.DIV || op == Symbol.MULT
 				|| op == Symbol.AND) {
 			lexer.nextToken();
-			//Gabriela ERR-SEM09 -erro de linha
+			//Gabriela ER-SEM09 - erro de linha
 			Expr right = signalFactor();
 			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
-				signalError.show("type '" + left.getType() + "' does not support operator '" + op.toString()+ "'");
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
-			if(left.getType()!= Type.booleanType && op == Symbol.AND){
-				signalError.show("type '" + left.getType() + "' does not support operator '&&'");
+			if(left.getType() != Type.booleanType && op == Symbol.AND){
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
 			}
 			//$Gabriela
 			left = new CompositeExpr(left, op, right);
@@ -1237,11 +1237,17 @@ public class Compiler {
           	 *                 "this" "." Id "(" [ ExpressionList ] ")"  | 
           	 *                 "this" "." Id "." Id "(" [ ExpressionList ] ")"
 			 */
+						
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
 				// only 'this'
 				// retorne um objeto da ASA que representa 'this'
 				// confira se não estamos em um método estático
+				
+				//ER-SEM71: Chamada a this em método static
+				if (currentMethod.isStatic()) {
+					signalError.show("Attempt to access an instance variabel using 'this' in a static method");
+				}
 				
 				//pode retornar só this?
 				return null;
@@ -1261,15 +1267,23 @@ public class Compiler {
 					 * 'ident' e que pode tomar os parâmetros de ExpressionList
 					 */
 					
+					//ER-SEM71: Chamada a this em método static
+					if (currentMethod.isStatic()) {
+						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
+					}
+					
 					//Gabriela
 					Method m = currentClass.callMethod(ident);
 					if(m==null){
-						signalError.show("Method '"+ ident+ "' was not found in class '" + currentClass.getName()+ "' or its superclasses");
+						signalError.show("Method '"+ ident+ "' was not found in class '" 
+										 + currentClass.getName()+ "' or its superclasses");
 					}
 					type = m.getType();
 					//Gabriela$
 					
 					exprList = this.realParameters();
+					
+					//Tratar erro de passagem de parâmetros incorretos
 				}
 				else if ( lexer.token == Symbol.DOT ) {
 					// "this" "." Id "." Id "(" [ ExpressionList ] ")"
@@ -1289,10 +1303,16 @@ public class Compiler {
 					//Gabriela
 					InstanceVariable var = currentClass.searchVariable(ident);
 					if(var==null){
-						signalError.show("Instance variable '"+ ident+ "' was not found in class '" + currentClass.getName()+ "'");
+						signalError.show("Instance variable '" + ident + "' was not found in class '"
+										 + currentClass.getName()+ "'");
 					}
 					if(type == null){
 						type = var.getType();
+					}
+					
+					//ER-SEM71: Chamada a this em método static
+					if (currentMethod.isStatic()) {
+						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
 					}
 					//$Gabriela
 					
