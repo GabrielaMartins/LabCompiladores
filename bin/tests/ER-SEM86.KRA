@@ -5,7 +5,8 @@
 class Program {
     
     public void run() {  
-	    new A();
+	    if ( new A() == null ) 
+		    write(0);
     }
 
 }
