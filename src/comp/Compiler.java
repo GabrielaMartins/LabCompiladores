@@ -844,11 +844,12 @@ public class Compiler {
 	}
 
 	private void writeStatement() {
-
+		ExprList expr;
+		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
-		exprList();
+		expr = exprList();
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
@@ -925,7 +926,15 @@ public class Compiler {
 		while ((op = lexer.token) == Symbol.DIV || op == Symbol.MULT
 				|| op == Symbol.AND) {
 			lexer.nextToken();
+			//Gabriela ERR-SEM09 -erro de linha
 			Expr right = signalFactor();
+			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
+				signalError.show("type '" + left.getType() + "' does not support operator '" + op.toString()+ "'");
+			}
+			if(left.getType()!= Type.booleanType && op == Symbol.AND){
+				signalError.show("type '" + left.getType() + "' does not support operator '&&'");
+			}
+			//$Gabriela
 			left = new CompositeExpr(left, op, right);
 			
 		}
@@ -934,9 +943,17 @@ public class Compiler {
 
 	private Expr signalFactor() {
 		Symbol op;
+		Expr e;
 		if ( (op = lexer.token) == Symbol.PLUS || op == Symbol.MINUS ) {
 			lexer.nextToken();
-			return new SignalExpr(op, factor());
+			//Gabriela ERR-SEM16
+			e = factor();
+			if(e.getType() != Type.intType)
+				signalError.show("Operator '" + op.toString() + "' does not accepts '" + e.getType().getName() + "' expressions");
+				
+			return new SignalExpr(op, e);
+				
+			//$Gabriela
 		}
 		else
 			return factor();
