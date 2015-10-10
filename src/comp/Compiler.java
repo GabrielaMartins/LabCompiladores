@@ -691,14 +691,21 @@ public class Compiler {
 			if(lexer.token == Symbol.IDENT){
 				String name = lexer.getStringValue();
 				Variable var = symbolTable.getInLocal(name);
+				
+				//Gabriela
 				if(var == null){
 					//Valdeir
 					var = currentClass.searchVariable(name);
+					if (var != null) {
+						signalError.show("Identifier '"+ name +"' was not found");
+					}
+					//Valdeir$
+					
 					if (var == null) {
 						signalError.show("Variable " + name + " was not declared");
 					}
-					//Valdeir$
 				}
+				//$Gabriela
 			}
 			
 			left = expr();
@@ -955,7 +962,7 @@ public class Compiler {
 	private Expr factor() {
 
 		Expr e;
-		ExprList exprList;
+		ExprList exprList = null;
 		String messageName, ident;
 
 		switch (lexer.token) {
@@ -1064,9 +1071,15 @@ public class Compiler {
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
 			
+			//Gabriela ER-SEM47
+			messageName = lexer.getStringValue();
+			if(currentClass.searchMethodS(messageName)==null){
+				signalError.show("Method '"+ messageName +"' was not found in superclass '" + currentClass.getName() + "' or its superclasses");
+			}
+			//$Gabriela
+			
 			//Valdeir
 			//ER-SEM60: Método privado em super
-			messageName = lexer.getStringValue();
 			if (currentClass.getSuper().callMethod(messageName) == null) {
 				signalError.show("Method '" + messageName + "' was not found in the "
 								 + "public interface of '" + currentClass.getName()
@@ -1161,9 +1174,19 @@ public class Compiler {
 					else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
 						
+						//Gabriela ER-SEM61
+						Method m = idType.searchMethod(ident);
+						if(m==null){
+							m = idType.searchMethodS(ident);
+							if(m==null){
+								signalError.show("Method '"+ ident+ "' was not found in class '" + idType.getName()+ "' or its superclasses");
+							}
+						}
+						//$Gabriela
+						
 						//Valdeir
 						//ER-SEM59: Chamada a método privado
-						Method m = idType.callMethod(ident);
+						m = idType.callMethod(ident);
 						if (m == null) {
 							signalError.show("Method '" + ident + "' was not found in the "
 											+ "public interface of '" + idType.getName()
@@ -1188,6 +1211,7 @@ public class Compiler {
 			}
 			break;
 		case THIS:
+			Type type = null;
 			/*
 			 * Este 'case THIS:' trata os seguintes casos: 
           	 * PrimaryExpr ::= 
@@ -1201,6 +1225,8 @@ public class Compiler {
 				// only 'this'
 				// retorne um objeto da ASA que representa 'this'
 				// confira se não estamos em um método estático
+				
+				//pode retornar só this?
 				return null;
 			}
 			else {
@@ -1208,6 +1234,7 @@ public class Compiler {
 				if ( lexer.token != Symbol.IDENT )
 					signalError.show("Identifier expected");
 				ident = lexer.getStringValue();
+				
 				lexer.nextToken();
 				// já analisou "this" "." Id
 				if ( lexer.token == Symbol.LEFTPAR ) {
@@ -1216,6 +1243,15 @@ public class Compiler {
 					 * Confira se a classe corrente possui um método cujo nome é
 					 * 'ident' e que pode tomar os parâmetros de ExpressionList
 					 */
+					
+					//Gabriela
+					Method m = currentClass.callMethod(ident);
+					if(m==null){
+						signalError.show("Method '"+ ident+ "' was not found in class '" + currentClass.getName()+ "' or its superclasses");
+					}
+					type = m.getType();
+					//Gabriela$
+					
 					exprList = this.realParameters();
 				}
 				else if ( lexer.token == Symbol.DOT ) {
@@ -1232,7 +1268,18 @@ public class Compiler {
 					 * confira se a classe corrente realmente possui uma
 					 * variável de instância 'ident'
 					 */
-					return null;
+					
+					//Gabriela
+					InstanceVariable var = currentClass.searchVariable(ident);
+					if(var==null){
+						signalError.show("Instance variable '"+ ident+ "' was not found in class '" + currentClass.getName()+ "'");
+					}
+					if(type == null){
+						type = var.getType();
+					}
+					//$Gabriela
+					
+					return new ThisExpr(type, exprList);
 				}
 			}
 			break;

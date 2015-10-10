@@ -16,7 +16,7 @@ class Program {
       A a;
       B b;
       
-      a = new A();
+   	  a = new A();
       b = a;         //#
    }   
 
