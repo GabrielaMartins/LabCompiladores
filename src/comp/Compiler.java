@@ -547,8 +547,7 @@ public class Compiler {
 				//result = Type.identType;
 				result = new TypeIdent(nameType);
 			}else{
-				
-				signalError.show("Type " +nameType+ " was not found");
+				signalError.show("Type " + nameType + " was not found");
 			}
 			break;
 		default:
@@ -624,8 +623,10 @@ public class Compiler {
 		default:
 			//ER-SEM06
 			if(lexer.token == Symbol.LITERALINT || lexer.token == Symbol.LITERALSTRING ||
-			lexer.token == Symbol.FALSE || lexer.token == Symbol.TRUE)
+					lexer.token == Symbol.FALSE || lexer.token == Symbol.TRUE) {
+				
 				signalError.show("'operator expected' or 'variable expected at the left-hand side of a assignment'");
+			}
 			
 			signalError.show("Statement expected");
 		}
@@ -1178,30 +1179,40 @@ public class Compiler {
 					}
 					else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
-												
+						Method m;
 						//Gabriela ER-SEM61
-						Method m = idType.searchMethod(ident);
-						if(m==null){
+						//Method m = idType.searchMethod(ident);
+						/*if(m==null){
 							m = idType.searchMethodS(ident);
 							if(m==null){
 								signalError.show("Method '" + ident + "' was not found in class '" 
 												 + idType.getName()+ "' or its superclasses");
 							}
-						}
+						}*/
 						
-						if (m.isStatic() && isType(firstId) == false) {
-							signalError.show("Method '" + m.getName() + "' was not found in class"
-											 + "' " + idType.getName() + "' or its superclasses");
-						}
+						
 						//$Gabriela
 						
 						//Valdeir
 						//ER-SEM59: Chamada a método privado
-						m = idType.callMethod(ident);
-						if (m == null) {
-							signalError.show("Method '" + ident + "' was not found in the "
-											+ "public interface of '" + idType.getName()
-											+ "' or its superclasses");
+						if (isType(firstId) == false) {
+							m = idType.callMethod(ident);
+							if (m == null) {
+								signalError.show("Method '" + ident + "' was not found in the "
+												+ "public interface of '" + idType.getName()
+												+ "' or its superclasses");
+							} else {
+								if (m.isStatic()) {
+									signalError.show("Method '" + ident + "' was not found in class"
+													 + "' " + idType.getName() + "' or its superclasses");
+								}
+							}
+						} else {
+							m = idType.callMethod(ident);
+							if (m == null) {
+								signalError.show("Static method '" + ident + "' was not found in class"
+										 		 + "' " + idType.getName() + "'");
+							}
 						}
 						//Valdeir$
 						
