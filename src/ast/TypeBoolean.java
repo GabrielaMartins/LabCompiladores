@@ -9,4 +9,12 @@ public class TypeBoolean extends Type {
       return "int";
    }
 
+	@Override
+	public int compareTo(Type o) {
+		if (o == null) {
+			return -1;
+		}
+		
+		return this.getName().compareTo(o.getName());
+	}
 }

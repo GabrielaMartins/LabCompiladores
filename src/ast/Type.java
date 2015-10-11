@@ -1,6 +1,6 @@
 package ast;
 
-abstract public class Type {
+abstract public class Type implements Comparable<Type> {
 
     public Type( String name ) {
         this.name = name;
