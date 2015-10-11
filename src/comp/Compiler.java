@@ -1124,24 +1124,24 @@ public class Compiler {
 			if ( lexer.token != Symbol.DOT ) {
 				// Id
 				// retorne um objeto da ASA que representa um identificador
-				
+								
 				//Arrumado: colocando como retorno um variableExpr 
 				Variable var = symbolTable.getInLocal(firstId);
 				//Valdeir
 				if (var == null) {
 					var = currentClass.searchVariable(firstId);
+					if (var == null) {
+						signalError.show("Variable '"+ firstId +"' was not declared");
+					}
 				}
 				//Valdeir$
 				
 				return new VariableExpr(var);
-			}
-			else { // Id "."
+			} else { // Id "."
 				lexer.nextToken(); // coma o "."
 				if ( lexer.token != Symbol.IDENT ) {
 					signalError.show("Identifier expected");
-				}
-				
-				else {
+				} else {
 					// Id "." Id
 					
 					//Valdeir
@@ -1154,19 +1154,7 @@ public class Compiler {
 					//Valdeir$
 									
 					lexer.nextToken();
-//<<<<<<< HEAD
 					ident = lexer.getStringValue();					
-/*=======
-					ident = lexer.getStringValue();
-					//Gabriela
-					KraClass c = getClass(firstId);
-					Method m = c.callMethod(ident);
-					if(m == null){
-						signalError.show("Method 'set' was not found in class 'A' or its superclasses");
-					}
-					//$Gabriela
-					
->>>>>>> factorGabi */
 					if ( lexer.token == Symbol.DOT ) {
 						// Id "." Id "." Id "(" [ ExpressionList ] ")"
 						/*
@@ -1190,14 +1178,20 @@ public class Compiler {
 					}
 					else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
-						
+												
 						//Gabriela ER-SEM61
 						Method m = idType.searchMethod(ident);
 						if(m==null){
 							m = idType.searchMethodS(ident);
 							if(m==null){
-								signalError.show("Method '"+ ident+ "' was not found in class '" + idType.getName()+ "' or its superclasses");
+								signalError.show("Method '" + ident + "' was not found in class '" 
+												 + idType.getName()+ "' or its superclasses");
 							}
+						}
+						
+						if (m.isStatic() && isType(firstId) == false) {
+							signalError.show("Method '" + m.getName() + "' was not found in class"
+											 + "' " + idType.getName() + "' or its superclasses");
 						}
 						//$Gabriela
 						
@@ -1209,10 +1203,6 @@ public class Compiler {
 											+ "public interface of '" + idType.getName()
 											+ "' or its superclasses");
 						}
-						
-						/*if (m.isStatic() && isType(firstId) == false) {
-							
-						}*/
 						//Valdeir$
 						
 						exprList = this.realParameters();
