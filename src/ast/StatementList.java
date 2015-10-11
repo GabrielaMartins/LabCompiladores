@@ -11,6 +11,8 @@ package ast;
 import java.util.*;
 
 public class StatementList {
+	
+    private ArrayList<Statement> statementList;
 
     public StatementList() {
     	statementList = new ArrayList<Statement>();
@@ -18,6 +20,19 @@ public class StatementList {
 
     public void addElement(Statement statement) {
     	statementList.add( statement );
+    }
+    
+    public Statement getElement(StatementType type) {
+    	
+    	Iterator<Statement> it = elements();
+    	while (it.hasNext()) {
+    		Statement s = (Statement) it.next();
+    		if (s != null && s.getType() == type) {
+    			return s;
+    		}
+    	}
+    	
+    	return null;
     }
 
     public Iterator<Statement> elements() {
@@ -27,7 +42,4 @@ public class StatementList {
     public int getSize() {
         return statementList.size();
     }
-
-    private ArrayList<Statement> statementList;
-
 }

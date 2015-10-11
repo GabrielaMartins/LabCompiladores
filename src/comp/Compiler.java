@@ -419,9 +419,15 @@ public class Compiler {
 
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTCURBRACKET ) signalError.show("{ expected");
-
 		lexer.nextToken();
-		statementList();
+		
+		//ER-SEM01: Falta de retorno em método com return type diferente de void
+		StatementList sl = statementList();
+		if (type != Type.voidType && sl.getElement(StatementType.Return) == null) {
+			signalError.show("Missing 'return' statement in method '" + name + "'");
+		}
+		currentMethod.setStatementList(sl);
+		
 		if ( lexer.token != Symbol.RIGHTCURBRACKET ) signalError.show("} expected");
 
 		lexer.nextToken();
@@ -568,22 +574,28 @@ public class Compiler {
 			lexer.nextToken();
 	}
 
-	private void statementList() {
+	private StatementList statementList() {
 		// CompStatement ::= "{" { Statement } "}"
 		Symbol tk;
+		StatementList list = new StatementList();
 		// statements always begin with an identifier, if, read, write, ...
 		while ((tk = lexer.token) != Symbol.RIGHTCURBRACKET
-				&& tk != Symbol.ELSE)
-			statement();
+				&& tk != Symbol.ELSE) {
+			list.addElement(statement());
+		}
+		
+		return list;
 	}
 
-	private void statement() {
+	private Statement statement() {
 		/*
 		 * Statement ::= Assignment ``;'' | IfStat |WhileStat | MessageSend
 		 *                ``;'' | ReturnStat ``;'' | ReadStat ``;'' | WriteStat ``;'' |
 		 *               ``break'' ``;'' | ``;'' | CompStatement | LocalDec
 		 */
-
+		
+		Statement ret = null;
+		
 		switch (lexer.token) {
 		case THIS:
 		case IDENT:
@@ -594,7 +606,7 @@ public class Compiler {
 			assignExprLocalDec();
 			break;
 		case RETURN:
-			returnStatement();
+			ret = returnStatement();
 			break;
 		case READ:
 			readStatement();
@@ -630,6 +642,8 @@ public class Compiler {
 			
 			signalError.show("Statement expected");
 		}
+		
+		return ret;
 	}
 
 	/*
@@ -807,13 +821,16 @@ public class Compiler {
 		}
 	}
 
-	private void returnStatement() {
-
+	private ReturnStatement returnStatement() {
+		Expr e;
+		
 		lexer.nextToken();
-		expr();
+		e = expr();
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
+		
+		return new ReturnStatement(e);
 	}
 
 	private void readStatement() {
