@@ -135,8 +135,6 @@ public class Compiler {
 		
 		//3 tipos de qualifier: static, final e (public/private)
 		Symbol classQualifier = null;
-		Symbol finalQualifier = null;
-		Symbol staticQualifier = null;
 		
 		Method met;
 		KraClass superClass = null;
@@ -203,6 +201,10 @@ public class Compiler {
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
+			Symbol qualifier;
+			Symbol finalQualifier = null;
+			Symbol staticQualifier = null;
+			
 			f = true; // =)
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
@@ -214,9 +216,7 @@ public class Compiler {
 				staticQualifier = Symbol.STATIC;
 				lexer.nextToken();
 			}
-			
-			Symbol qualifier;
-			
+					
 			switch (lexer.token) {
 			case PRIVATE:
 				lexer.nextToken();
@@ -547,8 +547,7 @@ public class Compiler {
 				//result = Type.identType;
 				result = new TypeIdent(nameType);
 			}else{
-				
-				signalError.show("Type " +nameType+ " was not found");
+				signalError.show("Type " + nameType + " was not found");
 			}
 			break;
 		default:
@@ -624,8 +623,10 @@ public class Compiler {
 		default:
 			//ER-SEM06
 			if(lexer.token == Symbol.LITERALINT || lexer.token == Symbol.LITERALSTRING ||
-			lexer.token == Symbol.FALSE || lexer.token == Symbol.TRUE)
+					lexer.token == Symbol.FALSE || lexer.token == Symbol.TRUE) {
+				
 				signalError.show("'operator expected' or 'variable expected at the left-hand side of a assignment'");
+			}
 			
 			signalError.show("Statement expected");
 		}
@@ -914,6 +915,17 @@ public class Compiler {
 				|| op == Symbol.OR) {
 			lexer.nextToken();
 			Expr right = term();
+			//Gabriela ER-SEM08 - SEM09
+			if(left.getType()!= Type.intType && (op== Symbol.MINUS || op==Symbol.PLUS)){
+				signalError.show("type " + left.getType().getName()+ " does not support operation '" + op.toString() + "'");
+			}
+			
+			if(right.getType()!= Type.intType && (op== Symbol.MINUS || op==Symbol.PLUS)){
+				signalError.show("operator '" + op.toString() + "' of '" + left.getType().getName() + "' expects an '" + left.getType().getName()+"' value");
+			}
+			
+			//$Gabriela
+			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
@@ -926,11 +938,12 @@ public class Compiler {
 		while ((op = lexer.token) == Symbol.DIV || op == Symbol.MULT
 				|| op == Symbol.AND) {
 			lexer.nextToken();
-			//Gabriela ERR-SEM09 -erro de linha
+			//Gabriela ER-SEM09 - erro de linha
 			Expr right = signalFactor();
 			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
 				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
+			
 			if(left.getType()!= Type.booleanType && op == Symbol.AND){
 				signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
 			}
@@ -1124,24 +1137,24 @@ public class Compiler {
 			if ( lexer.token != Symbol.DOT ) {
 				// Id
 				// retorne um objeto da ASA que representa um identificador
-				
+								
 				//Arrumado: colocando como retorno um variableExpr 
 				Variable var = symbolTable.getInLocal(firstId);
 				//Valdeir
 				if (var == null) {
 					var = currentClass.searchVariable(firstId);
+					if (var == null) {
+						signalError.show("Variable '"+ firstId +"' was not declared");
+					}
 				}
 				//Valdeir$
 				
 				return new VariableExpr(var);
-			}
-			else { // Id "."
+			} else { // Id "."
 				lexer.nextToken(); // coma o "."
 				if ( lexer.token != Symbol.IDENT ) {
 					signalError.show("Identifier expected");
-				}
-				
-				else {
+				} else {
 					// Id "." Id
 					
 					//Valdeir
@@ -1154,19 +1167,7 @@ public class Compiler {
 					//Valdeir$
 									
 					lexer.nextToken();
-//<<<<<<< HEAD
 					ident = lexer.getStringValue();					
-/*=======
-					ident = lexer.getStringValue();
-					//Gabriela
-					KraClass c = getClass(firstId);
-					Method m = c.callMethod(ident);
-					if(m == null){
-						signalError.show("Method 'set' was not found in class 'A' or its superclasses");
-					}
-					//$Gabriela
-					
->>>>>>> factorGabi */
 					if ( lexer.token == Symbol.DOT ) {
 						// Id "." Id "." Id "(" [ ExpressionList ] ")"
 						/*
@@ -1190,29 +1191,41 @@ public class Compiler {
 					}
 					else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
-						
+						Method m;
 						//Gabriela ER-SEM61
-						Method m = idType.searchMethod(ident);
-						if(m==null){
+						//Method m = idType.searchMethod(ident);
+						/*if(m==null){
 							m = idType.searchMethodS(ident);
 							if(m==null){
-								signalError.show("Method '"+ ident+ "' was not found in class '" + idType.getName()+ "' or its superclasses");
+								signalError.show("Method '" + ident + "' was not found in class '" 
+												 + idType.getName()+ "' or its superclasses");
 							}
-						}
+						}*/
+						
+						
 						//$Gabriela
 						
 						//Valdeir
 						//ER-SEM59: Chamada a método privado
-						m = idType.callMethod(ident);
-						if (m == null) {
-							signalError.show("Method '" + ident + "' was not found in the "
-											+ "public interface of '" + idType.getName()
-											+ "' or its superclasses");
+						if (isType(firstId) == false) {
+							m = idType.callMethod(ident);
+							if (m == null) {
+								signalError.show("Method '" + ident + "' was not found in the "
+												+ "public interface of '" + idType.getName()
+												+ "' or its superclasses");
+							} else {
+								if (m.isStatic()) {
+									signalError.show("Method '" + ident + "' was not found in class"
+													 + "' " + idType.getName() + "' or its superclasses");
+								}
+							}
+						} else {
+							m = idType.callMethod(ident);
+							if (m == null) {
+								signalError.show("Static method '" + ident + "' was not found in class"
+										 		 + "' " + idType.getName() + "'");
+							}
 						}
-						
-						/*if (m.isStatic() && isType(firstId) == false) {
-							
-						}*/
 						//Valdeir$
 						
 						exprList = this.realParameters();
@@ -1237,11 +1250,17 @@ public class Compiler {
           	 *                 "this" "." Id "(" [ ExpressionList ] ")"  | 
           	 *                 "this" "." Id "." Id "(" [ ExpressionList ] ")"
 			 */
+						
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
 				// only 'this'
 				// retorne um objeto da ASA que representa 'this'
 				// confira se não estamos em um método estático
+				
+				//ER-SEM71: Chamada a this em método static
+				if (currentMethod.isStatic()) {
+					signalError.show("Attempt to access an instance variabel using 'this' in a static method");
+				}
 				
 				//pode retornar só this?
 				return null;
@@ -1261,15 +1280,23 @@ public class Compiler {
 					 * 'ident' e que pode tomar os parâmetros de ExpressionList
 					 */
 					
+					//ER-SEM71: Chamada a this em método static
+					if (currentMethod.isStatic()) {
+						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
+					}
+					
 					//Gabriela
 					Method m = currentClass.callMethod(ident);
 					if(m==null){
-						signalError.show("Method '"+ ident+ "' was not found in class '" + currentClass.getName()+ "' or its superclasses");
+						signalError.show("Method '"+ ident+ "' was not found in class '" 
+										 + currentClass.getName()+ "' or its superclasses");
 					}
 					type = m.getType();
 					//Gabriela$
 					
 					exprList = this.realParameters();
+					
+					//Tratar erro de passagem de parâmetros incorretos
 				}
 				else if ( lexer.token == Symbol.DOT ) {
 					// "this" "." Id "." Id "(" [ ExpressionList ] ")"
@@ -1289,10 +1316,16 @@ public class Compiler {
 					//Gabriela
 					InstanceVariable var = currentClass.searchVariable(ident);
 					if(var==null){
-						signalError.show("Instance variable '"+ ident+ "' was not found in class '" + currentClass.getName()+ "'");
+						signalError.show("Instance variable '" + ident + "' was not found in class '"
+										 + currentClass.getName()+ "'");
 					}
 					if(type == null){
 						type = var.getType();
+					}
+					
+					//ER-SEM71: Chamada a this em método static
+					if (currentMethod.isStatic()) {
+						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
 					}
 					//$Gabriela
 					

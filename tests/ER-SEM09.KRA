@@ -1,4 +1,4 @@
-@ce(12, "Uso de operadores logicos com inteiros", 
+@ce(10, "Uso de operadores logicos com inteiros", 
    "type 'int' does not support operator '&&'",  "comp.Compiler.term()")
   
 
