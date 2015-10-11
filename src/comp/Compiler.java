@@ -824,8 +824,36 @@ public class Compiler {
 	private ReturnStatement returnStatement() {
 		Expr e;
 		
+		//ER-SEM35: Retorno em método void
+		if (currentMethod.getType() == Type.voidType) {
+			signalError.show("Illegal 'return' statement. Method returns 'void'");
+		}
+		
 		lexer.nextToken();
+		
 		e = expr();
+		//Ta bugando muitos erros ainda, vou deixar comentado por enquanto
+		//ER-SEM39: Retorno com tipos incompativeis
+		/*if (e.getType().compareTo(currentMethod.getType()) != 0) {
+			if(e.getType() instanceof TypeIdent && currentMethod.getType() instanceof TypeIdent){
+				String typeReturned = e.getType().getName();
+				String typeOfMethod = currentMethod.getType().getName();
+
+				KraClass typeLeft = symbolTable.getInGlobal(typeReturned);
+				KraClass typeRight = symbolTable.getInGlobal(typeOfMethod);
+
+				if (typeLeft.getSuper() == null) {
+					signalError.show("Type error: type of the expression returned is not subclass of the method return type");
+				} else if (typeLeft.getSuper().getName() != typeRight.getName()) {
+					signalError.show("Type error: type of the expression returned is not subclass of the method return type");
+				}
+			} else {
+				signalError.show("Type error: type of the expression returned is diferent from method return type");
+			}
+		} else {
+			signalError.show("Type error: type of the expression returned is diferent from method return type");
+		}*/
+		
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
