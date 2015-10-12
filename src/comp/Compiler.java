@@ -841,7 +841,7 @@ public class Compiler {
 				signalError.show(SignalError.ident_expected);
 
 			String name = lexer.getStringValue();
-			//Gabriela
+			//Gabriela ER-SEM13 - 45
 			if(isInstance == true){
 				InstanceVariable var = null;
 				var = currentClass.searchVariable(name);
@@ -873,8 +873,8 @@ public class Compiler {
 				if(v == null){
 					signalError.show("Variable " + name + " was not declared");
 				}
-				
 			}
+			//$Gabriela
 			
 			lexer.nextToken();
 			if ( lexer.token == Symbol.COMMA )
