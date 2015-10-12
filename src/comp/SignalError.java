@@ -78,7 +78,7 @@ public class SignalError {
        last_error = 2;
     public final static String strError[] = {
        "Identifier expected",
-       "; expected",
+       "Missing ';'",
     };
     private Lexer lexer;
     private PrintWriter out;

@@ -934,8 +934,12 @@ public class Compiler {
 		ExprList expr;
 		
 		lexer.nextToken();
-		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
+		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("Missing '('");
 		lexer.nextToken();
+		if (lexer.token == Symbol.RIGHTPAR) {
+			signalError.show("Command 'write' without arguments");
+		}
+		
 		expr = exprList();
 		//Gabriela ER-SEM14 - 44
 		Iterator<Expr> it = expr.getExprList().iterator();
@@ -954,7 +958,7 @@ public class Compiler {
 		}
 		//$Gabriela
 		
-		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
+		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
@@ -981,7 +985,7 @@ public class Compiler {
 		}
 		//$Gabriela
 		
-		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
+		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
