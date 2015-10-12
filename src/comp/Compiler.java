@@ -17,6 +17,7 @@ public class Compiler {
 		symbolTable = new SymbolTable();
 		lexer = new Lexer(input, signalError);
 		signalError.setLexer(lexer);
+		whileStack = new Stack<Integer>();
 
 		Program program = null;
 		lexer.nextToken();
@@ -792,6 +793,7 @@ public class Compiler {
 	}
 
 	private void whileStatement() {
+		whileStack.push(1);
 		//ER-SEM11.KRA
 		Expr condition;
 		lexer.nextToken();
@@ -804,6 +806,7 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		statement();
+		whileStack.pop();
 	}
 
 	private void ifStatement() {
@@ -911,6 +914,11 @@ public class Compiler {
 	}
 
 	private void breakStatement() {
+		
+		if (whileStack.isEmpty()) {
+			signalError.show("Command 'break' outside a command 'while'");
+		}		
+		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
@@ -1407,5 +1415,6 @@ public class Compiler {
 	private SignalError		signalError;
 	private KraClass 		currentClass;
 	private Method			currentMethod;
+	private Stack<Integer>	whileStack;	
 
 }
