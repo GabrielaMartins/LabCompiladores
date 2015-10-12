@@ -185,7 +185,7 @@ public class Compiler {
 			lexer.nextToken();
 		}
 		if ( lexer.token != Symbol.LEFTCURBRACKET )
-			signalError.show("{ expected", true);
+			signalError.show("'{' expected", true);
 		lexer.nextToken();
 		
 		currentClass = new KraClass(className, classQualifier, superClass);
@@ -416,7 +416,7 @@ public class Compiler {
 		}
 
 		lexer.nextToken();
-		if ( lexer.token != Symbol.LEFTCURBRACKET ) signalError.show("{ expected");
+		if ( lexer.token != Symbol.LEFTCURBRACKET ) signalError.show("'{' expected");
 		lexer.nextToken();
 		
 		//ER-SEM01: Falta de retorno em método com return type diferente de void
@@ -863,6 +863,9 @@ public class Compiler {
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("'(' expected after 'read' command");
 		lexer.nextToken();
+		if (lexer.token == Symbol.RIGHTPAR) {
+			signalError.show("Command 'read' without arguments");
+		}
 		while (true) {
 			if ( lexer.token == Symbol.THIS ) {
 				lexer.nextToken();
@@ -910,9 +913,13 @@ public class Compiler {
 			//$Gabriela
 			
 			lexer.nextToken();
-			if ( lexer.token == Symbol.COMMA )
+			if ( lexer.token == Symbol.COMMA ) {
 				lexer.nextToken();
-			else
+				//ER-SIN05: quando fica uma , sem um ident ou this depois
+				if (lexer.token != Symbol.IDENT || lexer.token != Symbol.THIS) {
+					signalError.show("Expression expected");
+				}
+			} else
 				break;
 		}
 
@@ -931,7 +938,7 @@ public class Compiler {
 		lexer.nextToken();
 		expr = exprList();
 		//Gabriela ER-SEM14 - 44
-		Iterator it = expr.getExprList().iterator();
+		Iterator<Expr> it = expr.getExprList().iterator();
 		
 		while(it.hasNext()){
 			Expr e = (Expr)it.next();
@@ -963,7 +970,7 @@ public class Compiler {
 		expr = exprList();
 		
 		//Gabriela ER-SEM14 - 44
-		Iterator it = expr.getExprList().iterator();
+		Iterator<Expr> it = expr.getExprList().iterator();
 
 		while(it.hasNext()){
 			Expr e = (Expr)it.next();
