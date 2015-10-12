@@ -9,9 +9,19 @@
 package ast;
 
 import java.util.Iterator;
+import java.util.HashMap;
 import lexer.Symbol;
 
 public class Method implements Comparable<Method> {
+	
+    private String name;
+    private Type type;
+    private Symbol qualifier; //private or public?
+    private Symbol finalQualifier;
+    private Symbol staticQualifier;
+    private ParameterList paramList;
+    private StatementList statements;
+    private HashMap<String, Variable> localTable;
 
     public Method( String name, Type type, Symbol qualifier ) {
         this.name = name;
@@ -20,7 +30,8 @@ public class Method implements Comparable<Method> {
         this.finalQualifier = null;
         this.staticQualifier = null;
         this.paramList = new ParameterList();
-        this.statements = null;
+        this.statements = new StatementList();
+        this.localTable  = new HashMap<String, Variable>();
     }
 
     public String getName() { 
@@ -67,6 +78,14 @@ public class Method implements Comparable<Method> {
     	this.statements = statements;
     }
     
+    public Variable putInLocal(String key, Variable value) {
+    	return localTable.put(key, value);
+    }
+    
+    public Variable getInLocal(String key) {
+    	return localTable.get(key);
+    }
+    
     @Override
 	public int compareTo(Method other) {
 		int thisParamSize, otherParamSize;
@@ -102,12 +121,4 @@ public class Method implements Comparable<Method> {
     	
     	return Integer.compare(thisParamSize, otherParamSize);
 	}
-
-    private String name;
-    private Type type;
-    private Symbol qualifier; //private or public?
-    private Symbol finalQualifier;
-    private Symbol staticQualifier;
-    private ParameterList paramList;
-    private StatementList statements;
 }

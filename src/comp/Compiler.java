@@ -438,8 +438,9 @@ public class Compiler {
 //feito
 	private void localDec() {
 		// LocalDec ::= Type IdList ";"
-		ArrayList<Variable> varLocalList = new ArrayList<Variable>();
+		
 		Variable v;
+		ArrayList<Variable> localVarList = new ArrayList<Variable>();
 
 		Type type = type();
 
@@ -448,39 +449,40 @@ public class Compiler {
 		//verifica de váriável já foi declarada
 		
 		String name = lexer.getStringValue();
-		v = (Variable)symbolTable.get(name);
+		//v = (Variable) symbolTable.get(name);
+		v = currentMethod.getInLocal(name);
 		
 		if(v==null){
 			v = new Variable(name, type);
-			symbolTable.putInLocal(name, v);
+			//symbolTable.putInLocal(name, v);
+			currentMethod.putInLocal(name, v);
+			localVarList.add(v);
 		}else{
 			signalError.show("Variable " + name + " is being redeclared");
 		}
 		
-		varLocalList.add(v);
-		
 		lexer.nextToken();
-		
-		v = null;
-		name = null;
-		
+			
 		while (lexer.token == Symbol.COMMA) {
 			lexer.nextToken();
 			
+			//ER-SIN02: arrumando mensagem de erro
 			if ( lexer.token != Symbol.IDENT )
-				//ER-SIN02: arrumando mensagem de erro
 				signalError.show("Missing identifier");
+			
 			name = lexer.getStringValue();
-			v = (Variable)symbolTable.get(name);
+			//v = (Variable) symbolTable.get(name);
+			v = currentMethod.getInLocal(name);
 			
 			if(v==null){
 				v = new Variable(name, type);
-				symbolTable.putInLocal(name, v);
+				//symbolTable.putInLocal(name, v);
+				currentMethod.putInLocal(name, v);
+				localVarList.add(v);
 			}else{
 				signalError.show("Variable " + name + " is being redeclared");
 			}
 			
-			varLocalList.add(v);
 			lexer.nextToken();
 		
 		}
@@ -489,7 +491,7 @@ public class Compiler {
 			signalError.show("Missing ';'");
 		}
 		
-		//return varLocalList;
+		//return localVarList;
 	}
 
 	private ParameterList formalParamDec() {
@@ -510,16 +512,26 @@ public class Compiler {
 		// ParamDec ::= Type Id
 		Type t = null;
 		String name = null;
+		Parameter p;
 		
 		t = type();
 		if ( lexer.token != Symbol.IDENT ) {
 			signalError.show("Identifier expected");
-			return new Parameter("Param", t);
 		}
 		name = lexer.getStringValue();
-		lexer.nextToken();
 		
-		return new Parameter(name, t);
+		p = (Parameter) currentMethod.getInLocal(name);
+		if (p != null) {
+			signalError.show("Variable '" + name + "' is being redeclared");
+		} else {
+			p = new Parameter(name, t);
+		}
+		
+		currentMethod.putInLocal(name, p);
+		
+		lexer.nextToken();
+				
+		return p;
 	}
 
 	private Type type() {
@@ -704,20 +716,21 @@ public class Compiler {
 			//verificando se uma variável foi declarada {ER-SEM02}
 			if(lexer.token == Symbol.IDENT){
 				String name = lexer.getStringValue();
-				Variable var = symbolTable.getInLocal(name);
+				//Variable var = symbolTable.getInLocal(name);
+				Variable var = currentMethod.getInLocal(name);
 				
 				//Gabriela
 				if(var == null){
 					//Valdeir
-					var = currentClass.searchVariable(name);
-					if (var != null) {
-						signalError.show("Identifier '"+ name +"' was not found");
-					}
+					//var = currentClass.searchVariable(name);
+					//if (var != null) {
+						//signalError.show("Identifier '"+ name +"' was not found");
+					//}
 					//Valdeir$
 					
-					if (var == null) {
+					//if (var == null) {
 						signalError.show("Variable " + name + " was not declared");
-					}
+					//}
 				}
 				//$Gabriela
 			}
@@ -804,7 +817,7 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		statement();
-		whileStack.pop();
+		if (whileStack.isEmpty() == false) whileStack.pop();
 	}
 
 	private void ifStatement() {
@@ -1172,13 +1185,14 @@ public class Compiler {
 				// retorne um objeto da ASA que representa um identificador
 								
 				//Arrumado: colocando como retorno um variableExpr 
-				Variable var = symbolTable.getInLocal(firstId);
+				//Variable var = symbolTable.getInLocal(firstId);
+				Variable var = currentMethod.getInLocal(firstId);
 				//Valdeir
 				if (var == null) {
-					var = currentClass.searchVariable(firstId);
-					if (var == null) {
-						signalError.show("Variable '"+ firstId +"' was not declared");
-					}
+					//var = currentClass.searchVariable(firstId);
+					//if (var == null) {
+						signalError.show("Variable '" + firstId + "' was not declared");
+					//}
 				}
 				//Valdeir$
 				
@@ -1192,7 +1206,7 @@ public class Compiler {
 					
 					//Valdeir
 					//Se não é uma classe é um tipo básico
-					//ER-SEM07: Enviando mensagem para classe básica
+					//ER-SEM07: Enviando mensagem para tipo básico
 					KraClass idType = getClass(firstId);
 					if (idType == null) {
 						signalError.show("Message send to a non-object receiver");
@@ -1302,6 +1316,7 @@ public class Compiler {
 				lexer.nextToken();
 				if ( lexer.token != Symbol.IDENT )
 					signalError.show("Identifier expected");
+				
 				ident = lexer.getStringValue();
 				
 				lexer.nextToken();
@@ -1319,7 +1334,7 @@ public class Compiler {
 					}
 					
 					//Gabriela
-					Method m = currentClass.callMethod(ident);
+					Method m = currentClass.searchMethod(ident);
 					if(m==null){
 						signalError.show("Method '"+ ident+ "' was not found in class '" 
 										 + currentClass.getName()+ "' or its superclasses");
