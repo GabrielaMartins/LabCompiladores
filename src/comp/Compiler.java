@@ -283,6 +283,7 @@ public class Compiler {
 		lexer.nextToken();		
 		
 		symbolTable.putInGlobal(currentClass.getName(), currentClass);
+		symbolTable.removeLocalIdent(); //Depois de avaliar a classe, limpa o localTable
 		
 		return currentClass;
 	}
@@ -299,7 +300,7 @@ public class Compiler {
 			symbolTable.putInLocal(name, var);
 			listVar.addElement(var);
 		}else{
-			signalError.show("Variable " + name + " is being redeclared");
+			signalError.show("Variable '" + name + "' is being redeclared");
 		}
 			
 		while (lexer.token == Symbol.COMMA) {
@@ -317,7 +318,7 @@ public class Compiler {
 				symbolTable.putInLocal(variableName, var);
 				listVar.addElement(var);				
 			} else {
-				signalError.show("Variable " + name + " is being redeclared");
+				signalError.show("Variable '" + name + "' is being redeclared");
 			}			
 			
 			lexer.nextToken();
@@ -326,9 +327,6 @@ public class Compiler {
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
-		
-		//Após processar as variáveis de instância, já pode limpar a localTable.
-		symbolTable.removeLocalIdent();
 		
 		return listVar;
 	}
