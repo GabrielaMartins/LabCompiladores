@@ -11,6 +11,11 @@ public class ExprList {
     public void addElement( Expr expr ) {
         exprList.add(expr);
     }
+    //Gabriela
+    public ArrayList<Expr> getExprList(){
+    	return exprList;
+    }
+    //$Gabriela
 
     public void genC( PW pw ) {
 

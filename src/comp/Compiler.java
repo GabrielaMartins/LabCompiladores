@@ -761,6 +761,15 @@ public class Compiler {
 					
 				}
 				
+				//Gabriela
+				if(right.getType()==Type.nullType){
+					Variable var = ((VariableExpr)left).getV();
+					symbolTable.removeVarLocalIdent(var.getName(), var);
+					var.setIsNull(true);
+					symbolTable.putInLocal(var.getName(), var);
+				}
+				//$Gabriela
+				
 				if ( lexer.token != Symbol.SEMICOLON )
 					signalError.show("Missing ';'", true);
 				else
@@ -850,6 +859,7 @@ public class Compiler {
 	}
 
 	private void readStatement() {
+		boolean isInstance = false;
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
@@ -858,11 +868,47 @@ public class Compiler {
 				lexer.nextToken();
 				if ( lexer.token != Symbol.DOT ) signalError.show(". expected");
 				lexer.nextToken();
+				isInstance = true;
 			}
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
 
 			String name = lexer.getStringValue();
+			//Gabriela ER-SEM13 - 45
+			if(isInstance == true){
+				InstanceVariable var = null;
+				var = currentClass.searchVariable(name);
+				if(var != null && var.getType()==Type.booleanType){
+					signalError.show("Command 'read' does not accept '" + var.getType().getName() + "' variables");
+				}
+				
+				if(var!=null && var.getType() instanceof TypeIdent){
+					signalError.show("'int' or 'String' expression expected");
+				}
+				
+				if(var == null){
+					signalError.show("Instance variable " + name + " was not declared");
+				}
+			}
+			
+			if(isInstance == false){
+				Variable v = null;
+				v = symbolTable.getInLocal(name);
+				
+				if(v != null && v.getType()==Type.booleanType){
+					signalError.show("Command 'read' does not accept '" + v.getType().getName() +"' variables");
+				}
+				
+				if(v!=null && v.getType() instanceof TypeIdent){
+					signalError.show("'int' or 'String' expression expected");
+				}
+				
+				if(v == null){
+					signalError.show("Variable " + name + " was not declared");
+				}
+			}
+			//$Gabriela
+			
 			lexer.nextToken();
 			if ( lexer.token == Symbol.COMMA )
 				lexer.nextToken();
@@ -884,6 +930,23 @@ public class Compiler {
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
 		expr = exprList();
+		//Gabriela ER-SEM14 - 44
+		Iterator it = expr.getExprList().iterator();
+		
+		while(it.hasNext()){
+			Expr e = (Expr)it.next();
+			if(e.getType() == Type.booleanType){
+				signalError.show("Command 'write' does not accept '"+ Type.booleanType.getName() +"' expressions");
+			}
+			if(e.getType()instanceof TypeIdent){
+				signalError.show("Command 'write' does not accept objects");
+			}
+			
+			//tratar para quando o tipo é void?
+			
+		}
+		//$Gabriela
+		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
@@ -892,11 +955,25 @@ public class Compiler {
 	}
 
 	private void writelnStatement() {
-
+		ExprList expr;
+		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
-		exprList();
+		expr = exprList();
+		
+		//Gabriela ER-SEM14 - 44
+		Iterator it = expr.getExprList().iterator();
+
+		while(it.hasNext()){
+			Expr e = (Expr)it.next();
+			if(e.getType() == Type.booleanType){
+				signalError.show("Command 'write' does not accept '"+ Type.booleanType.getName() +"' expressions");
+			}
+
+		}
+		//$Gabriela
+		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
@@ -940,9 +1017,37 @@ public class Compiler {
 				|| op == Symbol.LT || op == Symbol.GE || op == Symbol.GT ) {
 			lexer.nextToken();
 			Expr right = simpleExpr();
+			//Gabriela ER-SEM57 ER-SEM58
+			
+			Variable var = null;
+			
+			if(left.getType()instanceof TypeIdent){
+				var = ((VariableExpr)left).getV();
+				if(var.getIsNull() == true && (op == Symbol.NEQ || op == Symbol.EQ)){
+					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
+				}
+			}
+			
+			if(right.getType()instanceof TypeIdent){
+				var = ((VariableExpr)right).getV();
+				if(var.getIsNull()==true && (op == Symbol.NEQ || op == Symbol.EQ)){
+					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
+				}
+			}
+			
+			if(!checkRelExpr(left.getType(), right.getType())){
+				signalError.show("Type error in expression");
+			}
+			
+			//$Gabriela
+			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
+	}
+	
+	private boolean checkRelExpr( Type left, Type right ) {
+			return left == right;
 	}
 
 	private Expr simpleExpr() {
@@ -953,6 +1058,33 @@ public class Compiler {
 				|| op == Symbol.OR) {
 			lexer.nextToken();
 			Expr right = term();
+			//Gabriela ER-SEM08 - SEM09
+			System.out.println(left.getType());
+			if(left.getType()!= Type.intType && 
+					(op == Symbol.MINUS || op==Symbol.PLUS)){
+				signalError.show("type " + left.getType().getName()+ " does not support operation '" + op.toString() + "'");
+			}
+			
+			if(right.getType()!= Type.intType && 
+					(op == Symbol.MINUS || op==Symbol.PLUS)){
+				signalError.show("operator '" + op.toString() + "' of '" + left.getType().getName() + "' expects an '" + left.getType().getName()+"' value");
+			}
+			
+			if(op==Symbol.OR){
+				if(!checkBooleanExpr(left.getType(),right.getType())){
+					if(left.getType()!= Type.booleanType){
+						signalError.show("type '" + left.getType().getName() + "' does not support operator '||'");
+					}
+					
+					if(right.getType()!= Type.booleanType){
+						signalError.show("type '" + right.getType().getName() + "' does not support operator '||'");
+					}
+					
+				}
+			}
+			
+			//$Gabriela
+			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
@@ -967,17 +1099,37 @@ public class Compiler {
 			lexer.nextToken();
 			//Gabriela ER-SEM09 - erro de linha
 			Expr right = signalFactor();
-			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
+			if(left.getType() != Type.intType && 
+					(op == Symbol.DIV || op == Symbol.MULT)){
 				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
-			if(left.getType() != Type.booleanType && op == Symbol.AND){
-				signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
+			if(right.getType() != Type.intType && 
+					(op == Symbol.DIV || op == Symbol.MULT)){
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
+			
+			if(op == Symbol.AND){
+				if(!checkBooleanExpr(left.getType(),right.getType())){
+					if(left.getType()!= Type.booleanType){
+						signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
+					}
+					
+					if(right.getType()!= Type.booleanType){
+						signalError.show("type '" + right.getType().getName() + "' does not support operator '&&'");
+					}
+					
+				}
+			}
+			
 			//$Gabriela
 			left = new CompositeExpr(left, op, right);
 			
 		}
 		return left;
+	}
+	
+	private boolean checkBooleanExpr( Type left, Type right ) {
+		return left == Type.booleanType && right == Type.booleanType;
 	}
 
 	private Expr signalFactor() {
@@ -1086,10 +1238,7 @@ public class Compiler {
 			
 			exprList = this.realParameters();
 			
-			//lexer.nextToken();
-			
-			//System.out.println("O que temos aqui é" + lexer.token);
-			
+			//lexer.nextToken();		
 			
 			/*
 			 * return an object representing the creation of an object
