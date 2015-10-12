@@ -1267,7 +1267,7 @@ public class Compiler {
 								 + "' that does not have a superclass");
 			}
 			
-			//ER: Super nao pode ser chamado em metodo static
+			//ER: Super não pode ser chamado em metodo static
 			if (currentMethod.isStatic()) {
 				signalError.show("super used in static method '" + currentMethod.getName() + "'");
 			}
@@ -1282,7 +1282,7 @@ public class Compiler {
 				signalError.show("Identifier expected");
 			
 			//Gabriela 
-			//ER-SEM47: ER-SEM47: Método inexistente em super
+			//ER-SEM47: Método inexistente em super
 			messageName = lexer.getStringValue();
 			if(currentClass.searchMethodS(messageName)==null){
 				signalError.show("Method '"+ messageName +"' was not found in superclass '" 
@@ -1354,10 +1354,8 @@ public class Compiler {
 						if ( lexer.token != Symbol.IDENT )
 							signalError.show("Identifier expected");
 						
-						//Valdeir
 						messageName = lexer.getStringValue();
 						
-						//Valdeir$
 						lexer.nextToken();
 						exprList = this.realParameters();
 
@@ -1380,10 +1378,10 @@ public class Compiler {
 												+ "public interface of '" + idType.getName()
 												+ "' or its superclasses");
 							} else {
-								if (m.isStatic()) {
+								/*if (m.isStatic()) {
 									signalError.show("Method '" + ident + "' was not found in class"
 													 + "' " + idType.getName() + "' or its superclasses");
-								}
+								}*/
 							}
 						} else {
 						
@@ -1397,19 +1395,17 @@ public class Compiler {
 
 							//A.id fora da classe A
 							if (idType.getName().equals(currentClass.getName()) == false) {
-								if (m.isStatic() == false) {
-									signalError.show("Method '" + ident + "' was not found in class '" 
-											+ idType.getName()+ "'");
-								} else if (m.getQualifier() == Symbol.PRIVATE) {
+
+								if (m.getQualifier() == Symbol.PRIVATE) {
 									signalError.show("Method '" + ident + "' was not found in class"
-											+ "' " + idType.getName() + "' or its superclasses");
+													 + "' " + idType.getName() + "' or its superclasses");
 								}
 							} else {
 								//Se esta dentro da mesma classe, o único requisito é ser static
-								if (m.isStatic() == false) {
+								/*if (m.isStatic() == false) {
 									signalError.show("Method '" + ident + "' was not found in class '" 
 											+ idType.getName()+ "'");
-								}
+								}*/
 							}
 						}
 						
