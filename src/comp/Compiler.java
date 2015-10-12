@@ -826,6 +826,7 @@ public class Compiler {
 	}
 
 	private void readStatement() {
+		boolean isInstance = false;
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
@@ -834,11 +835,47 @@ public class Compiler {
 				lexer.nextToken();
 				if ( lexer.token != Symbol.DOT ) signalError.show(". expected");
 				lexer.nextToken();
+				isInstance = true;
 			}
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show(SignalError.ident_expected);
 
 			String name = lexer.getStringValue();
+			//Gabriela
+			if(isInstance == true){
+				InstanceVariable var = null;
+				var = currentClass.searchVariable(name);
+				if(var != null && var.getType()==Type.booleanType){
+					signalError.show("Command 'read' does not accept '" + var.getType().getName() + "' variables");
+				}
+				
+				if(var!=null && var.getType() instanceof TypeIdent){
+					signalError.show("'int' or 'String' expression expected");
+				}
+				
+				if(var == null){
+					signalError.show("Instance variable " + name + " was not declared");
+				}
+			}
+			
+			if(isInstance == false){
+				Variable v = null;
+				v = symbolTable.getInLocal(name);
+				
+				if(v != null && v.getType()==Type.booleanType){
+					signalError.show("Command 'read' does not accept '" + v.getType().getName() +"' variables");
+				}
+				
+				if(v!=null && v.getType() instanceof TypeIdent){
+					signalError.show("'int' or 'String' expression expected");
+				}
+				
+				if(v == null){
+					signalError.show("Variable " + name + " was not declared");
+				}
+				
+			}
+			
 			lexer.nextToken();
 			if ( lexer.token == Symbol.COMMA )
 				lexer.nextToken();
@@ -942,7 +979,8 @@ public class Compiler {
 				|| op == Symbol.LT || op == Symbol.GE || op == Symbol.GT ) {
 			lexer.nextToken();
 			Expr right = simpleExpr();
-			//Gabriela ER-SEM57 ER-SEM58		
+			//Gabriela ER-SEM57 ER-SEM58
+			
 			Variable var = null;
 			
 			if(left.getType()instanceof TypeIdent){
@@ -959,10 +997,19 @@ public class Compiler {
 				}
 			}
 			
+			if(!checkRelExpr(left.getType(), right.getType())){
+				signalError.show("Type error in expression");
+			}
+			
 			//$Gabriela
+			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
+	}
+	
+	private boolean checkRelExpr( Type left, Type right ) {
+			return left == right;
 	}
 
 	private Expr simpleExpr() {
@@ -974,12 +1021,28 @@ public class Compiler {
 			lexer.nextToken();
 			Expr right = term();
 			//Gabriela ER-SEM08 - SEM09
-			if(left.getType()!= Type.intType && (op== Symbol.MINUS || op==Symbol.PLUS)){
+			System.out.println(left.getType());
+			if(left.getType()!= Type.intType && 
+					(op == Symbol.MINUS || op==Symbol.PLUS)){
 				signalError.show("type " + left.getType().getName()+ " does not support operation '" + op.toString() + "'");
 			}
 			
-			if(right.getType()!= Type.intType && (op== Symbol.MINUS || op==Symbol.PLUS)){
+			if(right.getType()!= Type.intType && 
+					(op == Symbol.MINUS || op==Symbol.PLUS)){
 				signalError.show("operator '" + op.toString() + "' of '" + left.getType().getName() + "' expects an '" + left.getType().getName()+"' value");
+			}
+			
+			if(op==Symbol.OR){
+				if(!checkBooleanExpr(left.getType(),right.getType())){
+					if(left.getType()!= Type.booleanType){
+						signalError.show("type '" + left.getType().getName() + "' does not support operator '||'");
+					}
+					
+					if(right.getType()!= Type.booleanType){
+						signalError.show("type '" + right.getType().getName() + "' does not support operator '||'");
+					}
+					
+				}
 			}
 			
 			//$Gabriela
@@ -998,18 +1061,37 @@ public class Compiler {
 			lexer.nextToken();
 			//Gabriela ER-SEM09 - erro de linha
 			Expr right = signalFactor();
-			if(left.getType() != Type.intType && (op == Symbol.DIV || op == Symbol.MULT)){
+			if(left.getType() != Type.intType && 
+					(op == Symbol.DIV || op == Symbol.MULT)){
+				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
+			}
+			if(right.getType() != Type.intType && 
+					(op == Symbol.DIV || op == Symbol.MULT)){
 				signalError.show("type '" + left.getType().getName() + "' does not support operator '" + op.toString()+ "'");
 			}
 			
-			if(left.getType()!= Type.booleanType && op == Symbol.AND){
-				signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
+			if(op == Symbol.AND){
+				if(!checkBooleanExpr(left.getType(),right.getType())){
+					if(left.getType()!= Type.booleanType){
+						signalError.show("type '" + left.getType().getName() + "' does not support operator '&&'");
+					}
+					
+					if(right.getType()!= Type.booleanType){
+						signalError.show("type '" + right.getType().getName() + "' does not support operator '&&'");
+					}
+					
+				}
 			}
+			
 			//$Gabriela
 			left = new CompositeExpr(left, op, right);
 			
 		}
 		return left;
+	}
+	
+	private boolean checkBooleanExpr( Type left, Type right ) {
+		return left == Type.booleanType && right == Type.booleanType;
 	}
 
 	private Expr signalFactor() {
@@ -1119,8 +1201,7 @@ public class Compiler {
 			exprList = this.realParameters();
 			
 			//lexer.nextToken();
-			
-			System.out.println("O que temos aqui é" + lexer.token);
+
 			
 			
 			/*
