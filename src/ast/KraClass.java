@@ -66,52 +66,63 @@ public class KraClass extends Type {
 	public Method callMethod(String name) {
 		Method m;
 
-		m = searchInPublic(name);
+		m = searchInPublic(name, false);
 		if (m != null) {
 			return m;
 		}
 		
-		return null;
-		
-		/*if (superClass == null) {
+		if (superClass == null) {
 			return null;
 		}
 
-		return superClass.callMethod(name);*/
+		return superClass.callMethod(name);
 
 	}
 	
-	public Method callMethodS(String name) {
+	public Method callStaticMethod(String name) {
 		
-		if (superClass != null) {
-			return superClass.callMethod(name);
+		Method m;
+		m = searchInPublic(name, true);
+		if (m != null) {
+			return m;
+		} else {
+			m = searchInPrivate(name, true);
+			if (m != null) {
+				return m;
+			}
 		}
 		
 		return null;
 	}
 
-	private Method searchInPublic(String name) {
+	private Method searchInPublic(String name, boolean isStatic) {
 
 		Iterator<Method> it = publicMethodList.elements();
 		while(it.hasNext()) {
 
 			Method thisMethod = (Method) it.next();
 			if (thisMethod.getName().equals(name)) {
-				return thisMethod;
+				if (thisMethod.isStatic() && isStatic)
+					return thisMethod;
+				else if (thisMethod.isStatic() == false && isStatic == false)
+					return thisMethod;
 			}
 		}
 
 		return null;
 	}
 
-	private Method searchInPrivate(String name) {
+	private Method searchInPrivate(String name, boolean isStatic) {
 
 		Iterator<Method> it = privateMethodList.elements();
 		while(it.hasNext()) {
 
 			Method thisMethod = (Method) it.next();
 			if (thisMethod.getName().equals(name)) {
-				return thisMethod;
+				if (thisMethod.isStatic() && isStatic)
+					return thisMethod;
+				else if (thisMethod.isStatic() == false && isStatic == false)
+					return thisMethod;
 			}
 		}
 
@@ -121,11 +132,21 @@ public class KraClass extends Type {
 	public Method searchMethod(String name) {
 
 		Method m;
-		if ( (m = searchInPublic(name)) != null ) {
+		if ( (m = searchInPublic(name, false)) != null ) {
 			return m;
 		}
 
-		return searchInPrivate(name);
+		return searchInPrivate(name, false);
+	}
+	
+	public Method searchStaticMethod(String name) {
+
+		Method m;
+		if ( (m = searchInPublic(name, true)) != null ) {
+			return m;
+		}
+
+		return searchInPrivate(name, true);
 	}
 
 	/*public Method searchMethod(String name) {

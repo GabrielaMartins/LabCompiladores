@@ -384,23 +384,22 @@ public class Compiler {
 		}
 		
 		/*Tratamento dos erros:
-		* ER-SEM73: Redefinição de método static
 		* ER-SEM32: Método sendo redeclarado
+		* ER-SEM73: Redefinição de método static
 		* ER-SEM84: Método final sendo redefinido na classe derivada
 		* 
 		* ER-SEM29 e ER-SEM30: Erro na redefinição de métodos com assinaturas diferentes
 		*/
 		
 		//Se não for nulo, achou algum parametro igual
+		Method searchM;
 		if (currentClass.searchMethod(currentMethod.getName()) != null) {
-			
+			signalError.show("Method '" + currentMethod.getName() + "' is being redeclared");
+		} else if ( (searchM = currentClass.searchStaticMethod(currentMethod.getName())) != null) {
 			if (currentMethod.isStatic()) {
 				signalError.show("Redefinition of static method '" + currentMethod.getName() +"'");
-			} else {
-				signalError.show("Method '" + currentMethod.getName() + "' is being redeclared");
 			}
 		} else if (currentClass.hasSuper()) {
-			Method searchM;
 			if ( (searchM = currentClass.searchMethodS(currentMethod.getName())) != null) {
 				if (searchM.isFinal()) {
 					signalError.show("Redeclaration of final method '" + searchM.getName() + "'");
@@ -1386,45 +1385,33 @@ public class Compiler {
 													 + "' " + idType.getName() + "' or its superclasses");
 								}
 							}
-						}
+						} else {
 						
 						//Senão considera que é classe!
 						
-						//Gabriela ER-SEM61
-						//Method m = idType.searchMethod(ident);
-						/*if(m==null){
-							m = idType.searchMethodS(ident);
-							if(m==null){
-								signalError.show("Method '" + ident + "' was not found in class '" 
-												 + idType.getName()+ "' or its superclasses");
-							}
-						}*/
-						
-						
-						//$Gabriela
-						
-						//Valdeir
-						//ER-SEM59: Chamada a método privado
-						if (isType(firstId) == false) {
-							m = idType.callMethod(ident);
+							m = idType.callStaticMethod(ident);
 							if (m == null) {
-								signalError.show("Method '" + ident + "' was not found in the "
-												+ "public interface of '" + idType.getName()
-												+ "' or its superclasses");
-							} else {
-								if (m.isStatic()) {
+								signalError.show("Method '" + ident + "' was not found in class '" 
+										+ idType.getName()+ "' or its superclasses");
+							}
+
+							//A.id fora da classe A
+							if (idType.getName().equals(currentClass.getName()) == false) {
+								if (m.isStatic() == false) {
+									signalError.show("Method '" + ident + "' was not found in class '" 
+											+ idType.getName()+ "'");
+								} else if (m.getQualifier() == Symbol.PRIVATE) {
 									signalError.show("Method '" + ident + "' was not found in class"
-													 + "' " + idType.getName() + "' or its superclasses");
+											+ "' " + idType.getName() + "' or its superclasses");
+								}
+							} else {
+								//Se esta dentro da mesma classe, o único requisito é ser static
+								if (m.isStatic() == false) {
+									signalError.show("Method '" + ident + "' was not found in class '" 
+											+ idType.getName()+ "'");
 								}
 							}
-						} else {
-							m = idType.callMethod(ident);
-							if (m == null) {
-								signalError.show("Static method '" + ident + "' was not found in class"
-										 		 + "' " + idType.getName() + "'");
-							}
 						}
-						//Valdeir$
 						
 						exprList = this.realParameters();
 						/*

@@ -54,6 +54,14 @@ public class Method implements Comparable<Method> {
     	return statements;
     }
     
+    public boolean isPrivate() {
+    	return qualifier == Symbol.PRIVATE;
+    }
+    
+    public boolean isPublic() {
+    	return qualifier == Symbol.PUBLIC;
+    }
+    
     public boolean isFinal() {
     	return finalQualifier != null;
     }
