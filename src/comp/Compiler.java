@@ -755,6 +755,15 @@ public class Compiler {
 					
 				}
 				
+				//Gabriela
+				if(right.getType()==Type.nullType){
+					Variable var = ((VariableExpr)left).getV();
+					symbolTable.removeVarLocalIdent(var.getName(), var);
+					var.setIsNull(true);
+					symbolTable.putInLocal(var.getName(), var);
+				}
+				//$Gabriela
+				
 				if ( lexer.token != Symbol.SEMICOLON )
 					signalError.show("Missing ';'", true);
 				else
@@ -851,6 +860,23 @@ public class Compiler {
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
 		expr = exprList();
+		//Gabriela ER-SEM14 - 44
+		Iterator it = expr.getExprList().iterator();
+		
+		while(it.hasNext()){
+			Expr e = (Expr)it.next();
+			if(e.getType() == Type.booleanType){
+				signalError.show("Command 'write' does not accept '"+ Type.booleanType.getName() +"' expressions");
+			}
+			if(e.getType()instanceof TypeIdent){
+				signalError.show("Command 'write' does not accept objects");
+			}
+			
+			//tratar para quando o tipo é void?
+			
+		}
+		//$Gabriela
+		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
@@ -859,11 +885,25 @@ public class Compiler {
 	}
 
 	private void writelnStatement() {
-
+		ExprList expr;
+		
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
-		exprList();
+		expr = exprList();
+		
+		//Gabriela ER-SEM14 - 44
+		Iterator it = expr.getExprList().iterator();
+
+		while(it.hasNext()){
+			Expr e = (Expr)it.next();
+			if(e.getType() == Type.booleanType){
+				signalError.show("Command 'write' does not accept '"+ Type.booleanType.getName() +"' expressions");
+			}
+
+		}
+		//$Gabriela
+		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
 		if ( lexer.token != Symbol.SEMICOLON )
@@ -902,6 +942,24 @@ public class Compiler {
 				|| op == Symbol.LT || op == Symbol.GE || op == Symbol.GT ) {
 			lexer.nextToken();
 			Expr right = simpleExpr();
+			//Gabriela ER-SEM57 ER-SEM58		
+			Variable var = null;
+			
+			if(left.getType()instanceof TypeIdent){
+				var = ((VariableExpr)left).getV();
+				if(var.getIsNull() == true && (op == Symbol.NEQ || op == Symbol.EQ)){
+					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
+				}
+			}
+			
+			if(right.getType()instanceof TypeIdent){
+				var = ((VariableExpr)right).getV();
+				if(var.getIsNull()==true && (op == Symbol.NEQ || op == Symbol.EQ)){
+					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
+				}
+			}
+			
+			//$Gabriela
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;

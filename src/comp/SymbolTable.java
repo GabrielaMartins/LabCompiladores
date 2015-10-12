@@ -44,7 +44,11 @@ public class SymbolTable {
            // remove all local identifiers from the table
          localTable.clear();
     }
-
+    //Gabriela
+    public void removeVarLocalIdent(String key, Variable value){
+    	localTable.remove(key, value);
+    }
+    //$Gabriela
 
     private HashMap<String, KraClass> globalTable;
     private HashMap<String, Variable> localTable;
