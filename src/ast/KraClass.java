@@ -67,13 +67,24 @@ public class KraClass extends Type {
 		if (m != null) {
 			return m;
 		}
-
-		if (superClass == null) {
+		
+		return null;
+		
+		/*if (superClass == null) {
 			return null;
 		}
 
-		return superClass.callMethod(name);
+		return superClass.callMethod(name);*/
 
+	}
+	
+	public Method callMethodS(String name) {
+		
+		if (superClass != null) {
+			return superClass.callMethod(name);
+		}
+		
+		return null;
 	}
 
 	private Method searchInPublic(String name) {

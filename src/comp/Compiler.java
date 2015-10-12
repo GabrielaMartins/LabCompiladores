@@ -557,11 +557,8 @@ public class Compiler {
 			//imagino que a classe retorna um tipo "ident" e o nome do tipo é armazenado em algum lugar 
 			String nameType = lexer.getStringValue();
 			
-			
 			//corrigindo: ER-SEM18
-			
 			if(isType(nameType)== true){
-				//result = Type.identType;
 				result = new TypeIdent(nameType);
 			}else{
 				signalError.show("Type " + nameType + " was not found");
@@ -663,23 +660,6 @@ public class Compiler {
 	 */
 	private boolean isType(String name) {
 		return this.symbolTable.getInGlobal(name) != null;
-	}
-	
-	/*
-	 * retorna true se 'name' é uma variável declarada localmente
-	 * ou uma variável de instancia da classe corrente.
-	 */
-	private boolean isVariable(String name) {
-		
-		if (this.symbolTable.getInLocal(name) != null) {
-			return true;
-		}
-		
-		return this.currentClass.searchVariable(name) != null;
-	}
-	
-	private boolean isMethod(String name) {
-		return currentClass.callMethod(name) != null;
 	}
 
 	/*
@@ -1108,7 +1088,7 @@ public class Compiler {
 			
 			//lexer.nextToken();
 			
-			System.out.println("O que temos aqui é" + lexer.token);
+			//System.out.println("O que temos aqui é" + lexer.token);
 			
 			
 			/*
@@ -1147,10 +1127,12 @@ public class Compiler {
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
 			
-			//Gabriela ER-SEM47
+			//Gabriela 
+			//ER-SEM47: ER-SEM47: Método inexistente em super
 			messageName = lexer.getStringValue();
 			if(currentClass.searchMethodS(messageName)==null){
-				signalError.show("Method '"+ messageName +"' was not found in superclass '" + currentClass.getName() + "' or its superclasses");
+				signalError.show("Method '"+ messageName +"' was not found in superclass '" 
+								 + currentClass.getName() + "' or its superclasses");
 			}
 			//$Gabriela
 			
@@ -1158,7 +1140,7 @@ public class Compiler {
 			//ER-SEM60: Método privado em super
 			if (currentClass.getSuper().callMethod(messageName) == null) {
 				signalError.show("Method '" + messageName + "' was not found in the "
-								 + "public interface of '" + currentClass.getName()
+								 + "public interface of '" + currentClass.getSuper().getName()
 								 + "' or its superclasses");
 			}
 			//Valdeir$
@@ -1179,6 +1161,8 @@ public class Compiler {
 			 */
 
 			String firstId = lexer.getStringValue();
+			KraClass idType = getClass(firstId);
+			
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
 				// Id
@@ -1189,10 +1173,7 @@ public class Compiler {
 				Variable var = currentMethod.getInLocal(firstId);
 				//Valdeir
 				if (var == null) {
-					//var = currentClass.searchVariable(firstId);
-					//if (var == null) {
-						signalError.show("Variable '" + firstId + "' was not declared");
-					//}
+					signalError.show("Variable '" + firstId + "' was not declared");
 				}
 				//Valdeir$
 				
@@ -1203,15 +1184,6 @@ public class Compiler {
 					signalError.show("Identifier expected");
 				} else {
 					// Id "." Id
-					
-					//Valdeir
-					//Se não é uma classe é um tipo básico
-					//ER-SEM07: Enviando mensagem para tipo básico
-					KraClass idType = getClass(firstId);
-					if (idType == null) {
-						signalError.show("Message send to a non-object receiver");
-					}
-					//Valdeir$
 									
 					lexer.nextToken();
 					ident = lexer.getStringValue();					
@@ -1235,9 +1207,14 @@ public class Compiler {
 						lexer.nextToken();
 						exprList = this.realParameters();
 
-					}
-					else if ( lexer.token == Symbol.LEFTPAR ) {
+					} else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"
+						
+						//ER-SEM07: Mensagem sendo enviada para tipo básico
+						if (idType == null) {
+							signalError.show("Message send to a non-object receiver");
+						}
+						
 						Method m;
 						//Gabriela ER-SEM61
 						//Method m = idType.searchMethod(ident);
@@ -1280,8 +1257,7 @@ public class Compiler {
 						 * para fazer as conferências semânticas, procure por
 						 * método 'ident' na classe de 'firstId'
 						 */
-					}
-					else {
+					} else {
 						// retorne o objeto da ASA que representa Id "." Id
 					}
 				}
@@ -1411,13 +1387,18 @@ public class Compiler {
 	
 	//Gabriela
 	private KraClass getClass(String name) {
+		
 		String varType = null;
-		Variable var = symbolTable.getInLocal(name);
+		KraClass className = null;
+		
+		//Variable var = symbolTable.getInLocal(name);
+		Variable var = currentMethod.getInLocal(name);
 		if (var != null) {
 			varType = var.getType().getName();
+			className = symbolTable.getInGlobal(varType);
+		} else {
+			className = symbolTable.getInGlobal(name);
 		}
-		
-		KraClass className = symbolTable.getInGlobal(varType);
 		
 		return className;
 	}
