@@ -198,7 +198,7 @@ public class Compiler {
 
 		}
 		
-		boolean f = false; //flag pra controlar a primeira entrada no while abaixo
+		//boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
@@ -206,7 +206,7 @@ public class Compiler {
 			Symbol finalQualifier = null;
 			Symbol staticQualifier = null;
 			
-			f = true; // =)
+			//f = true; // =)
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -267,9 +267,11 @@ public class Compiler {
 		}
 		
 		//Se qualifier não foi definido, não leu private ou public no while acima
-		if (f == false) {
+		//ER-SIN31:
+		if ( lexer.token != Symbol.RIGHTCURBRACKET ) {
 			signalError.show("'public', 'private', or '}' expected");
 		}
+			//signalError.show("public/private or \"}\" expected");
 		
 		//ER-SEM77: Se for classe Program, deve ter metodo run()
 		if (currentClass.getName().equals("Program")) {
@@ -278,9 +280,8 @@ public class Compiler {
 			}
 		}
 		
-		if ( lexer.token != Symbol.RIGHTCURBRACKET )
-			signalError.show("public/private or \"}\" expected");
-		lexer.nextToken();		
+		
+		lexer.nextToken();
 		
 		symbolTable.putInGlobal(currentClass.getName(), currentClass);
 		symbolTable.removeLocalIdent(); //Depois de avaliar a classe, limpa o localTable
