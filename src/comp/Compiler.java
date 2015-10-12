@@ -160,7 +160,7 @@ public class Compiler {
 		if ( lexer.token == Symbol.EXTENDS ) {
 			lexer.nextToken();
 			if ( lexer.token != Symbol.IDENT )
-				signalError.show(SignalError.ident_expected);
+				signalError.show("Class expected");
 			
 			/*
 			 * ER-SEM27: Classe herda de si mesma?
@@ -859,8 +859,9 @@ public class Compiler {
 
 	private void readStatement() {
 		boolean isInstance = false;
+		
 		lexer.nextToken();
-		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
+		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("'(' expected after 'read' command");
 		lexer.nextToken();
 		while (true) {
 			if ( lexer.token == Symbol.THIS ) {
@@ -870,7 +871,7 @@ public class Compiler {
 				isInstance = true;
 			}
 			if ( lexer.token != Symbol.IDENT )
-				signalError.show(SignalError.ident_expected);
+				signalError.show("Command 'read' expects a variable");
 
 			String name = lexer.getStringValue();
 			//Gabriela ER-SEM13 - 45
@@ -892,7 +893,7 @@ public class Compiler {
 			
 			if(isInstance == false){
 				Variable v = null;
-				v = symbolTable.getInLocal(name);
+				v = currentMethod.getInLocal(name);
 				
 				if(v != null && v.getType()==Type.booleanType){
 					signalError.show("Command 'read' does not accept '" + v.getType().getName() +"' variables");
