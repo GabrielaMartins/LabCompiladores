@@ -1261,12 +1261,18 @@ public class Compiler {
 			 */
 		case SUPER:
 			// "super" "." Id "(" [ ExpressionList ] ")"
-			//Valdeir
+
+			//ER-SEM46: super em classe sem herança
 			if (currentClass.getSuper() == null) {
 				signalError.show("'super' used in class '" + currentClass.getName()
 								 + "' that does not have a superclass");
 			}
-			//Valdeir$
+			
+			//ER: Super nao pode ser chamado em metodo static
+			if (currentMethod.isStatic()) {
+				signalError.show("super used in static method '" + currentMethod.getName() + "'");
+			}
+
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
 				signalError.show("'.' expected");
@@ -1357,14 +1363,33 @@ public class Compiler {
 						exprList = this.realParameters();
 
 					} else if ( lexer.token == Symbol.LEFTPAR ) {
-						// Id "." Id "(" [ ExpressionList ] ")"
+						// Id "." Id "(" [ ExpressionList ] ")"						
+						Method m;
 						
-						//ER-SEM07: Mensagem sendo enviada para tipo básico
-						if (idType == null) {
-							signalError.show("Message send to a non-object receiver");
+						//É objeto recebendo mensagem
+						//ER-SEM59: Chamada a método privado
+						if (isType(firstId) == false) {
+							
+							//ER-SEM07: Mensagem sendo enviada para tipo básico
+							if (idType == null) {
+								signalError.show("Message send to a non-object receiver");
+							}
+							
+							m = idType.callMethod(ident);
+							if (m == null) {
+								signalError.show("Method '" + ident + "' was not found in the "
+												+ "public interface of '" + idType.getName()
+												+ "' or its superclasses");
+							} else {
+								if (m.isStatic()) {
+									signalError.show("Method '" + ident + "' was not found in class"
+													 + "' " + idType.getName() + "' or its superclasses");
+								}
+							}
 						}
 						
-						Method m;
+						//Senão considera que é classe!
+						
 						//Gabriela ER-SEM61
 						//Method m = idType.searchMethod(ident);
 						/*if(m==null){

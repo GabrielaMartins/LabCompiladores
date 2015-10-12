@@ -14,6 +14,7 @@ public class KraClass extends Type {
 	private Symbol qualifier;
 	private InstanceVariableList instanceVariableList;
 	private MethodList publicMethodList, privateMethodList;
+	private MethodList publicStaticList, privateStaticList;
 	
 	public KraClass( String name, Symbol qualifier, KraClass superClass ) {
 		super(name);
@@ -22,6 +23,8 @@ public class KraClass extends Type {
 		this.instanceVariableList = new InstanceVariableList();
 		this.publicMethodList = new MethodList();
 		this.privateMethodList = new MethodList();
+		this.publicStaticList = new MethodList();
+		this.privateStaticList = new MethodList();
 	}
 
 	public String getCname() {
