@@ -261,7 +261,7 @@ public class Compiler {
 				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
 				
-				currentClass.setInstanceVariableList(instanceVarDec(t, name));
+				currentClass.addVariableList(instanceVarDec(t, name));
 				//instanceVarDec(t, name);
 			}			
 		}
@@ -283,7 +283,6 @@ public class Compiler {
 		lexer.nextToken();
 		
 		symbolTable.putInGlobal(currentClass.getName(), currentClass);
-		symbolTable.removeLocalIdent(); //Depois de avaliar a classe, limpa o localTable
 		
 		return currentClass;
 	}
@@ -294,10 +293,12 @@ public class Compiler {
 		InstanceVariable var;
 		InstanceVariableList listVar = new InstanceVariableList();
 		
-		var = (InstanceVariable) symbolTable.getInLocal(name);
+		//Cada classe tem sua propria localTable, deixamos symbolTable.localTable
+		//para variaveis locais!
+		var = (InstanceVariable) currentClass.getInLocal(name);
 		if(var == null){
 			var = new InstanceVariable(name, type);
-			symbolTable.putInLocal(name, var);
+			currentClass.putInLocal(name, var);
 			listVar.addElement(var);
 		}else{
 			signalError.show("Variable '" + name + "' is being redeclared");
@@ -309,13 +310,13 @@ public class Compiler {
 				signalError.show("Identifier expected");
 			
 			String variableName = lexer.getStringValue();
-			var = (InstanceVariable) symbolTable.getInLocal(variableName);
+			var = (InstanceVariable) currentClass.getInLocal(variableName);
 			
 			if (var == null) {
 				//Se a variável não está na tabela então coloca
 				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type);
-				symbolTable.putInLocal(variableName, var);
+				currentClass.putInLocal(variableName, var);
 				listVar.addElement(var);				
 			} else {
 				signalError.show("Variable '" + name + "' is being redeclared");
@@ -343,7 +344,7 @@ public class Compiler {
 		}
 		
 		//ER-SEM31: Método com nome de variável
-		if (currentClass.searchVariable(name) != null) {
+		if (currentClass.getInLocal(name) != null) {
 			signalError.show("Method '" + name + "' has name equal to an instance variable");
 		}
 		
@@ -430,6 +431,8 @@ public class Compiler {
 
 		lexer.nextToken();
 		
+		symbolTable.removeLocalIdent(); //apos avaliar o metodo pode limpar a localTable
+		
 		return currentMethod;
 
 	}
@@ -449,12 +452,12 @@ public class Compiler {
 		
 		String name = lexer.getStringValue();
 		//v = (Variable) symbolTable.get(name);
-		v = currentMethod.getInLocal(name);
+		v = symbolTable.getInLocal(name);
 		
 		if(v==null){
 			v = new Variable(name, type);
 			//symbolTable.putInLocal(name, v);
-			currentMethod.putInLocal(name, v);
+			symbolTable.putInLocal(name, v);
 			localVarList.addElement(v);//?
 		}else{
 			signalError.show("Variable " + name + " is being redeclared");
@@ -471,12 +474,12 @@ public class Compiler {
 			
 			name = lexer.getStringValue();
 			//v = (Variable) symbolTable.get(name);
-			v = currentMethod.getInLocal(name);
+			v = symbolTable.getInLocal(name);
 			
 			if(v==null){
 				v = new Variable(name, type);
 				//symbolTable.putInLocal(name, v);
-				currentMethod.putInLocal(name, v);
+				symbolTable.putInLocal(name, v);
 				localVarList.addElement(v);
 			}else{
 				signalError.show("Variable " + name + " is being redeclared");
@@ -519,14 +522,14 @@ public class Compiler {
 		}
 		name = lexer.getStringValue();
 		
-		p = (Parameter) currentMethod.getInLocal(name);
+		p = (Parameter) symbolTable.getInLocal(name);
 		if (p != null) {
 			signalError.show("Variable '" + name + "' is being redeclared");
 		} else {
 			p = new Parameter(name, t);
 		}
 		
-		currentMethod.putInLocal(name, p);
+		symbolTable.putInLocal(name, p);
 		
 		lexer.nextToken();
 				
@@ -697,12 +700,12 @@ public class Compiler {
 			if(lexer.token == Symbol.IDENT){
 				String name = lexer.getStringValue();
 				//Variable var = symbolTable.getInLocal(name);
-				Variable var = currentMethod.getInLocal(name);
+				Variable var = symbolTable.getInLocal(name);
 				
 				//Gabriela
 				if(var == null){
 					//Valdeir
-					//var = currentClass.searchVariable(name);
+					//var = currentClass.getInLocal(name);
 					//if (var != null) {
 						//signalError.show("Identifier '"+ name +"' was not found");
 					//}
@@ -892,7 +895,7 @@ public class Compiler {
 			String name = lexer.getStringValue();
 			//Gabriela ER-SEM13 - 45
 			if(isInstance == true){
-				var = (InstanceVariable)currentClass.searchVariable(name);
+				var = (InstanceVariable)currentClass.getInLocal(name);
 				if(var != null && var.getType()==Type.booleanType){
 					signalError.show("Command 'read' does not accept '" + var.getType().getName() + "' variables");
 				}
@@ -908,7 +911,7 @@ public class Compiler {
 			
 			if(isInstance == false){
 				var = null;
-				var = currentMethod.getInLocal(name);
+				var = symbolTable.getInLocal(name);
 				
 				if(var != null && var.getType()==Type.booleanType){
 					signalError.show("Command 'read' does not accept '" + var.getType().getName() +"' variables");
@@ -1366,7 +1369,7 @@ public class Compiler {
 								
 				//Arrumado: colocando como retorno um variableExpr 
 				//Variable var = symbolTable.getInLocal(firstId);
-				Variable var = currentMethod.getInLocal(firstId);
+				Variable var = symbolTable.getInLocal(firstId);
 				//Valdeir
 				if (var == null) {
 					signalError.show("Variable '" + firstId + "' was not declared");
@@ -1537,7 +1540,7 @@ public class Compiler {
 					 */
 					
 					//Gabriela
-					InstanceVariable var = currentClass.searchVariable(ident);
+					InstanceVariable var = (InstanceVariable) currentClass.getInLocal(ident);
 					if(var==null){
 						signalError.show("Instance variable '" + ident + "' was not found in class '"
 										 + currentClass.getName()+ "'");
@@ -1591,7 +1594,7 @@ public class Compiler {
 		KraClass className = null;
 		
 		//Variable var = symbolTable.getInLocal(name);
-		Variable var = currentMethod.getInLocal(name);
+		Variable var = symbolTable.getInLocal(name);
 		if (var != null) {
 			varType = var.getType().getName();
 			className = symbolTable.getInGlobal(varType);
@@ -1609,5 +1612,4 @@ public class Compiler {
 	private KraClass 		currentClass;
 	private Method			currentMethod;
 	private Stack<Integer>	whileStack;	
-
 }

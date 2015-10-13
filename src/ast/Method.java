@@ -8,8 +8,8 @@
 
 package ast;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.HashMap;
 import lexer.Symbol;
 
 public class Method implements Comparable<Method> {
@@ -21,7 +21,7 @@ public class Method implements Comparable<Method> {
     private Symbol staticQualifier;
     private ParameterList paramList;
     private StatementList statements;
-    private HashMap<String, Variable> localTable;
+    private ArrayList<LocalVariableList> variableList;
 
     public Method( String name, Type type, Symbol qualifier ) {
         this.name = name;
@@ -31,7 +31,7 @@ public class Method implements Comparable<Method> {
         this.staticQualifier = null;
         this.paramList = new ParameterList();
         this.statements = new StatementList();
-        this.localTable  = new HashMap<String, Variable>();
+        this.variableList = new ArrayList<>();
     }
 
     public String getName() { 
@@ -86,12 +86,8 @@ public class Method implements Comparable<Method> {
     	this.statements = statements;
     }
     
-    public Variable putInLocal(String key, Variable value) {
-    	return localTable.put(key, value);
-    }
-    
-    public Variable getInLocal(String key) {
-    	return localTable.get(key);
+    public void addVariableList(LocalVariableList vl) {
+    	this.variableList.add(vl);
     }
     
     @Override

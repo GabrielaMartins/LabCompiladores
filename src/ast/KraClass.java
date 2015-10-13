@@ -4,27 +4,29 @@ package ast;
  * Krakatoa Class
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import lexer.Symbol;
+
 
 public class KraClass extends Type {
 	
 	private String name;
 	private KraClass superClass;
 	private Symbol qualifier;
-	private InstanceVariableList instanceVariableList;
+	private ArrayList<InstanceVariableList> instanceVariableList;
 	private MethodList publicMethodList, privateMethodList;
-	private MethodList publicStaticList, privateStaticList;
+    private HashMap<String, Variable> localTable;
 	
 	public KraClass( String name, Symbol qualifier, KraClass superClass ) {
 		super(name);
 		this.qualifier = qualifier;
 		this.superClass = superClass;
-		this.instanceVariableList = new InstanceVariableList();
+		this.instanceVariableList = new ArrayList<>();
 		this.publicMethodList = new MethodList();
 		this.privateMethodList = new MethodList();
-		this.publicStaticList = new MethodList();
-		this.privateStaticList = new MethodList();
+        this.localTable  = new HashMap<String, Variable>();
 	}
 
 	public String getCname() {
@@ -39,8 +41,8 @@ public class KraClass extends Type {
 		return qualifier != null;
 	}
 
-	public void setInstanceVariableList(InstanceVariableList ivl) {
-		this.instanceVariableList = ivl;
+	public void addVariableList(InstanceVariableList ivl) {
+		this.instanceVariableList.add(ivl);
 	}
 
 	public void addPublicMethod(Method method) {
@@ -149,29 +151,6 @@ public class KraClass extends Type {
 		return searchInPrivate(name, true);
 	}
 
-	/*public Method searchMethod(String name) {
-
-	   Iterator<Method> it = publicMethodList.elements();
-	   while(it.hasNext()) {
-
-		   Method thisMethod = (Method) it.next();
-		   if (thisMethod.getName().equals(name)) {
-			   return thisMethod;
-		   }
-	   }
-
-	   it = privateMethodList.elements();
-	   while(it.hasNext()) {
-
-		   Method thisMethod = (Method) it.next();
-		   if (thisMethod.getName().equals(name)) {
-			   return thisMethod;
-		   }
-	   }
-
-	   return null;
-   }*/
-
 	public Method searchMethodS(String name) {
 
 		if (superClass != null) {
@@ -180,24 +159,14 @@ public class KraClass extends Type {
 
 		return null;
 	}
-
-	public InstanceVariable searchVariable(String name) {
-
-		if (instanceVariableList == null) {
-			return null;
-		}
-
-		Iterator<InstanceVariable> it = instanceVariableList.elements();
-		while(it.hasNext()) {
-
-			InstanceVariable var = (InstanceVariable) it.next();
-			if (var.getName().equals(name)) {
-				return var;
-			}
-		}
-
-		return null;
-	}
+	
+    public Variable putInLocal(String key, Variable value) {
+    	return localTable.put(key, value);
+    }
+    
+    public Variable getInLocal(String key) {
+    	return localTable.get(key);
+    }
 
 	@Override
 	public int compareTo(Type o) {
