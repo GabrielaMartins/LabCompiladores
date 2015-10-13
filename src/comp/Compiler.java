@@ -271,7 +271,6 @@ public class Compiler {
 		if ( lexer.token != Symbol.RIGHTCURBRACKET ) {
 			signalError.show("'public', 'private', or '}' expected");
 		}
-			//signalError.show("public/private or \"}\" expected");
 		
 		//ER-SEM77: Se for classe Program, deve ter metodo run()
 		if (currentClass.getName().equals("Program")) {
@@ -688,8 +687,7 @@ public class Compiler {
 			 * LocalDec ::= Type IdList ``;''
 			 */
 			localDec();
-		}
-		else {
+		} else {
 			/*
 			 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ]
 			 */
@@ -814,6 +812,9 @@ public class Compiler {
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
+		if (lexer.token == Symbol.RIGHTPAR) {
+			signalError.show("Expression expected");
+		}
 		expr();
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show(") expected");
 		lexer.nextToken();
@@ -1232,6 +1233,7 @@ public class Compiler {
 				signalError.show("Identifier expected");
 
 			String className = lexer.getStringValue();
+			lexer.nextToken();
 			
 			/*
 			 * // encontre a classe className in symbol table KraClass 
@@ -1246,9 +1248,20 @@ public class Compiler {
 				signalError.show("Class '" + className + "' was not found");
 			}
 			
-			Type t = type();
+			//ER-SIN58: Construtores nao tem parâmetro
+			if (lexer.token != Symbol.LEFTPAR) {
+				signalError.show("'(' expected");
+			}
+			lexer.nextToken();
+			if (lexer.token != Symbol.RIGHTPAR) {
+				signalError.show("')' expected");
+			}
+			lexer.nextToken();
 			
-			exprList = this.realParameters();
+			Type t = new TypeIdent(aClass.getName());
+			//Type t = type();
+			
+			//exprList = this.realParameters();
 			
 			//lexer.nextToken();		
 			
@@ -1256,7 +1269,7 @@ public class Compiler {
 			 * return an object representing the creation of an object
 			 */
 			
-			return new NewExpr(t, exprList);
+			return new NewExpr(t);
 			
 			//$Gabriela
 			

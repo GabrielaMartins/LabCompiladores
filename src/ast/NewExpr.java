@@ -1,12 +1,11 @@
 package ast;
 
 public class NewExpr extends Expr {
-	Type type;
-	ExprList exprlist;
 	
-	public NewExpr(Type type, ExprList exprlist){
+	Type type;
+	
+	public NewExpr(Type type){
 		this.type = type;
-		this.exprlist = exprlist;
 	}
 	
 	public Type getType(){
