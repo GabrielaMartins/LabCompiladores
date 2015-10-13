@@ -439,7 +439,7 @@ public class Compiler {
 		// LocalDec ::= Type IdList ";"
 		
 		Variable v;
-		LocalVariableList localVarList = null;
+		LocalVariableList localVarList = new LocalVariableList();
 
 		Type type = type();
 
@@ -455,7 +455,7 @@ public class Compiler {
 			v = new Variable(name, type);
 			//symbolTable.putInLocal(name, v);
 			currentMethod.putInLocal(name, v);
-			localVarList.addElement(v);
+			localVarList.addElement(v);//?
 		}else{
 			signalError.show("Variable " + name + " is being redeclared");
 		}
