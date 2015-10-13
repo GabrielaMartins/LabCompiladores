@@ -125,10 +125,10 @@ public class Lexer {
                 try {
                    numberValue = Integer.valueOf(number.toString()).intValue();
                 } catch ( NumberFormatException e ) {
-                   error.show("Number out of limits");
+                   error.show("literal int out of limites");
                 }
                 if ( numberValue > MaxValueInteger )
-                   error.show("Number out of limits");
+                   error.show("literal int out of limites");
             }
             else {
                 tokenPos++;
@@ -149,25 +149,37 @@ public class Lexer {
                       if ( input[tokenPos] == '=' ) {
                         tokenPos++;
                         token = Symbol.LE;
+                      } else {
+                    	  if (input[tokenPos] == '<') {
+                    		  error.show("Expression expected OR Unknown sequence of symbols");
+                    	  } else
+                    		  token = Symbol.LT;
                       }
-                      else
-                        token = Symbol.LT;
                       break;
                     case '>' :
                       if ( input[tokenPos] == '=' ) {
                         tokenPos++;
                         token = Symbol.GE;
+                      } else {
+                    	  if (input[tokenPos] == '>') {
+                    		  error.show("Expression expected OR invalid sequence of symbols");
+                    	  } else
+                    		  token = Symbol.GT;
+                        
                       }
-                      else
-                        token = Symbol.GT;
                       break;
                     case '=' :
                       if ( input[tokenPos] == '=' ) {
                         tokenPos++;
                         token = Symbol.EQ;
+                      } else {
+                    	  if (input[tokenPos] == '>') {
+                    		  error.show("Expression expected OR invalid sequence of symbols");
+                    	  } else if (input[tokenPos] == '<') {
+                    		  error.show("')' expected OR Unknown sequence of symbols");
+                    	  } else
+                    		  token = Symbol.ASSIGN;
                       }
-                      else
-                        token = Symbol.ASSIGN;
                       break;
                     case '!' :
                       if ( input[tokenPos] == '=' ) {
@@ -261,7 +273,7 @@ public class Lexer {
                        token = Symbol.LITERALSTRING;
                        break;
                     default :
-                      error.show("Invalid Character: '" + ch + "'", false);
+                      error.show("Unknown character: '" + ch + "'", false);
                 }
             }
           }
