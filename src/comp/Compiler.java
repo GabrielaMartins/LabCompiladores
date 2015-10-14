@@ -922,11 +922,13 @@ public class Compiler {
 
 			KraClass typeLeft = symbolTable.getInGlobal(typeReturned);
 			KraClass typeRight = symbolTable.getInGlobal(typeOfMethod);
-
-			if (typeLeft.getSuper() == null) {
-				signalError.show("Type error: type of the expression returned is not subclass of the method return type");
-			} else if (typeLeft.getSuper().getName() != typeRight.getName()) {
-				signalError.show("Type error: type of the expression returned is not subclass of the method return type");
+			
+			if (! typeReturned.equals(typeOfMethod)) {
+				if (typeLeft.getSuper() == null) {
+					signalError.show("Type error: type of the expression returned is not subclass of the method return type");
+				} else if (typeLeft.getSuper().getName() != typeRight.getName()) {
+					signalError.show("Type error: type of the expression returned is not subclass of the method return type");
+				}
 			}
 		}
 		
