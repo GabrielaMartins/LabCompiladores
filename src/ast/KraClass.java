@@ -61,11 +61,18 @@ public class KraClass extends Type {
 	public String getCname() {
 		return getName();
 	}
+	
+	public void setSuper(KraClass superClass) {
+		this.superClass = superClass;
+	}
 
 	public KraClass getSuper() {
 		return superClass;
 	}
-
+	
+	public void setFinal() {
+		this.qualifier = Symbol.FINAL;
+	}
 	public boolean isFinal() {
 		return qualifier != null;
 	}

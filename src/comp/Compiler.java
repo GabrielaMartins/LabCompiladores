@@ -60,6 +60,8 @@ public class Compiler {
 			if (kraClassList.getElement("Program") == null) {
 				signalError.show("Source code without a class 'Program'");
 			}
+			
+			program.setClassList(kraClassList);
 		}
 		catch( RuntimeException e) {
 			// if there was an exception, there is a compilation signalError
@@ -199,24 +201,21 @@ public class Compiler {
 		lexer.nextToken();
 		
 		currentClass = new KraClass(className, classQualifier, superClass);
+		symbolTable.putInGlobal(currentClass.getName(), currentClass);
 		
 		if (lexer.token == Symbol.RIGHTCURBRACKET) {
 			lexer.nextToken();
-			symbolTable.putInGlobal(currentClass.getName(), currentClass);
 			
 			return currentClass;
-
 		}
 		
-		//boolean f = false; //flag pra controlar a primeira entrada no while abaixo
 		while (lexer.token == Symbol.PRIVATE || lexer.token == Symbol.PUBLIC
 				|| lexer.token == Symbol.FINAL || lexer.token == Symbol.STATIC) {
 			
 			Symbol qualifier;
 			Symbol finalQualifier = null;
 			Symbol staticQualifier = null;
-			
-			//f = true; // =)
+
 			//verificar se uma variável é final ou static (só variáveis ou métodos tbm?)
 			if (lexer.token == Symbol.FINAL) {
 				finalQualifier = Symbol.FINAL;
@@ -266,13 +265,15 @@ public class Compiler {
 					System.out.println("Metodos privados:");
 					currentClass.printPrivate();
 				}
+				symbolTable.putInGlobal(currentClass.getName(), currentClass);
 			} else if ( qualifier != Symbol.PRIVATE ) {
 				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
+				
 				boolean isStatic = (staticQualifier != null) ? true : false;
 				currentClass.addVariableList(instanceVarDec(t, name, isStatic));
-				//instanceVarDec(t, name);
+				symbolTable.putInGlobal(currentClass.getName(), currentClass);
 			}			
 		}
 		
