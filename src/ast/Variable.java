@@ -1,3 +1,7 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
 package ast;
 
 public class Variable {
@@ -19,7 +23,7 @@ public class Variable {
     public Type getType() {
         return type;
     }
-    //Gabriela
+
     public void setIsNull(boolean isNull){
     	this.isNull = isNull;
     }
@@ -27,11 +31,9 @@ public class Variable {
     public boolean getIsNull(){
     	return this.isNull;
     }
-    //$Gabriela
 
     private String name;
     private Type type;
-    //Gabriela
+
     private boolean isNull;
-    //$Gabriela
 }

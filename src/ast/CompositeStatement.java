@@ -1,8 +1,12 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
 package ast;
 
 public class CompositeStatement extends Statement{
 	
-	StatementType type; //?
+	StatementType type;
 	StatementList s;
 	
 	public CompositeStatement(StatementList s){
@@ -20,6 +24,6 @@ public class CompositeStatement extends Statement{
 	}
 	
 	public void genKra(PW pw){
-		
+		s.genKra(pw);
 	}
 }
