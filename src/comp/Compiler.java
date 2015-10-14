@@ -48,7 +48,7 @@ public class Compiler {
 			}
 			
 			kraClassList.addElement(classDec());
-			while ( lexer.token == Symbol.CLASS ) {
+			while ( lexer.token == Symbol.CLASS || lexer.token == Symbol.FINAL ) {
 				kraClassList.addElement(classDec());
 			}
 			
