@@ -323,9 +323,9 @@ public class Compiler {
 			String variableName = lexer.getStringValue();
 			var = (InstanceVariable) currentClass.getInLocal(variableName);
 			
+			//Verificação para permitir váriaveis estáticas e não estáticas de mesmo nome
 			if (var == null || var.isStatic() && ! isStatic) {
 				//Se a variável não está na tabela então coloca
-				//variáveis de instancia não seriam globais?
 				var = new InstanceVariable(variableName, type, isStatic);
 				currentClass.putInLocal(variableName, var);
 				listVar.addElement(var);				
@@ -740,10 +740,6 @@ public class Compiler {
 	private boolean isType(String name) {
 		KraClass classe = this.symbolTable.getInGlobal(name);
 		
-		if (classe == null) {
-			return (currentClass.getName().equals(name));
-		}
-		
 		return classe != null;
 	}
 
@@ -825,14 +821,13 @@ public class Compiler {
 					
 				}
 				
-				//Gabriela
+				
 				if(right.getType()==Type.nullType){
 					Variable var = ((VariableExpr)left).getV();
 					symbolTable.removeVarLocalIdent(var.getName(), var);
 					var.setIsNull(true);
 					symbolTable.putInLocal(var.getName(), var);
 				}
-				//$Gabriela
 				
 				if ( lexer.token != Symbol.SEMICOLON )
 					signalError.show("Missing ';'", true);
@@ -963,7 +958,7 @@ public class Compiler {
 				signalError.show("Command 'read' expects a variable");
 
 			String name = lexer.getStringValue();
-			//Gabriela ER-SEM13 - 45
+			//ER-SEM13 - 45
 			if(isInstance == true){
 				var = (InstanceVariable)currentClass.getInLocal(name);
 				if(var != null && var.getType()==Type.booleanType){
@@ -995,7 +990,6 @@ public class Compiler {
 					signalError.show("Variable " + name + " was not declared");
 				}
 			}
-			//$Gabriela
 			
 			lexer.nextToken();
 			if ( lexer.token == Symbol.COMMA ) {
@@ -1028,7 +1022,7 @@ public class Compiler {
 		}
 		
 		expr = exprList();
-		//Gabriela ER-SEM14 - 44
+		//ER-SEM14 - 44
 		Iterator<Expr> it = expr.getExprList().iterator();
 		
 		while(it.hasNext()){
@@ -1043,7 +1037,6 @@ public class Compiler {
 			//tratar para quando o tipo é void?
 			
 		}
-		//$Gabriela
 		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		lexer.nextToken();
@@ -1062,7 +1055,7 @@ public class Compiler {
 		lexer.nextToken();
 		expr = exprList();
 		
-		//Gabriela ER-SEM14 - 44
+		//ER-SEM14 - 44
 		Iterator<Expr> it = expr.getExprList().iterator();
 
 		while(it.hasNext()){
@@ -1072,7 +1065,6 @@ public class Compiler {
 			}
 
 		}
-		//$Gabriela
 		
 		if ( lexer.token != Symbol.RIGHTPAR ) signalError.show("')' expected");
 		lexer.nextToken();
@@ -1119,7 +1111,7 @@ public class Compiler {
 				|| op == Symbol.LT || op == Symbol.GE || op == Symbol.GT ) {
 			lexer.nextToken();
 			Expr right = simpleExpr();
-			//Gabriela ER-SEM57 ER-SEM58
+			//ER-SEM57 ER-SEM58
 			
 			Variable var = null;
 			
@@ -1141,8 +1133,6 @@ public class Compiler {
 				signalError.show("Type error in expression");
 			}
 			
-			//$Gabriela
-			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
@@ -1160,7 +1150,7 @@ public class Compiler {
 				|| op == Symbol.OR) {
 			lexer.nextToken();
 			Expr right = term();
-			//Gabriela ER-SEM08 - SEM09
+			//ER-SEM08 - SEM09
 			System.out.println(left.getType());
 			if(left.getType()!= Type.intType && 
 					(op == Symbol.MINUS || op==Symbol.PLUS)){
@@ -1185,8 +1175,6 @@ public class Compiler {
 				}
 			}
 			
-			//$Gabriela
-			
 			left = new CompositeExpr(left, op, right);
 		}
 		return left;
@@ -1199,7 +1187,7 @@ public class Compiler {
 		while ((op = lexer.token) == Symbol.DIV || op == Symbol.MULT
 				|| op == Symbol.AND) {
 			lexer.nextToken();
-			//Gabriela ER-SEM09 - erro de linha
+			//ER-SEM09 - erro de linha
 			Expr right = signalFactor();
 			if(left.getType() != Type.intType && 
 					(op == Symbol.DIV || op == Symbol.MULT)){
@@ -1223,7 +1211,7 @@ public class Compiler {
 				}
 			}
 			
-			//$Gabriela
+			
 			left = new CompositeExpr(left, op, right);
 			
 		}
@@ -1239,14 +1227,12 @@ public class Compiler {
 		Expr e;
 		if ( (op = lexer.token) == Symbol.PLUS || op == Symbol.MINUS ) {
 			lexer.nextToken();
-			//Gabriela ERR-SEM16
+			//ERR-SEM16
 			e = factor();
 			if(e.getType() != Type.intType)
 				signalError.show("Operator '" + op.toString() + "' does not accepts '" + e.getType().getName() + "' expressions");
 				
 			return new SignalExpr(op, e);
-				
-			//$Gabriela
 		}
 		else
 			return factor();
@@ -1309,12 +1295,12 @@ public class Compiler {
 		case NOT:
 			lexer.nextToken();
 			e = expr();
-			//Gabriela
+			
 			//ER-SEM15.KRA
 			if(e.getType()==Type.intType){
 				signalError.show("Operator '!' does not accepts 'int' values");
 			}
-			//Gabriela$
+			
 			return new UnaryExpr(e, Symbol.NOT);
 			// ObjectCreation ::= "new" Id "(" ")"
 		case NEW:
@@ -1331,7 +1317,7 @@ public class Compiler {
 			 *      if ( aClass == null ) ...
 			 */
 				
-			//Gabriela
+			
 			//ER-SEM37 - 38 - 86
 			KraClass aClass = symbolTable.getInGlobal(className);
 			if(aClass == null){
@@ -1646,7 +1632,7 @@ public class Compiler {
 
 	}
 	
-	//Gabriela
+	
 	private KraClass getClass(String name) {
 		
 		String varType = null;
@@ -1668,7 +1654,7 @@ public class Compiler {
 		
 		return className;
 	}
-	//Gabriela$
+	
 	
 	private Method getMethod(String ident, String name) {
 		
