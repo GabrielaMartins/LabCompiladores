@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package ast;
 
 import java.util.*;
@@ -35,5 +40,14 @@ public class KraClassList {
 
     public int getSize() {
         return classList.size();
+    }
+    
+    public void genKra(PW pw) {
+    	
+    	Iterator<KraClass> it = elements();
+    	while (it.hasNext()) {
+    		
+    		it.next().genKra(pw);
+    	}
     }
 }

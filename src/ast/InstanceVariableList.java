@@ -7,6 +7,10 @@ public class InstanceVariableList {
     public InstanceVariableList() {
        instanceVariableList = new ArrayList<InstanceVariable>();
     }
+    
+    public void genKra(PW pw) {
+    	
+    }
 
     public void addElement(InstanceVariable instanceVariable) {
        instanceVariableList.add( instanceVariable );

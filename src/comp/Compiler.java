@@ -1,3 +1,13 @@
+/* 
+ * Universidade Federal de São Carlos - Campus Sorocaba
+ * Laboratório de Compiladores - 2015/2
+ * Projeto: Fase 1
+ * 
+ * Docente:		José Guimarães
+ * 
+ * Dicentes:	Gabriela de Jesus Martins	- 489689
+ * 				Valdeir Soares Perozim		- 489786	
+ */
 
 package comp;
 
@@ -1383,31 +1393,29 @@ public class Compiler {
 			if ( lexer.token != Symbol.IDENT )
 				signalError.show("Identifier expected");
 			
-			//Gabriela 
 			//ER-SEM47: Método inexistente em super
 			messageName = lexer.getStringValue();
-			//m = this.getMethod(currentClass.getName(), messageName);
-			if(currentClass.searchMethodS(messageName)==null){
+			m = currentClass.searchMethodS(messageName);
+			if(m == null){
 				signalError.show("Method '"+ messageName +"' was not found in superclass '" 
 								 + currentClass.getName() + "' or its superclasses");
 			}
-			//$Gabriela
 			
-			//Valdeir
 			//ER-SEM60: Método privado em super
-			if (currentClass.getSuper().callMethod(messageName) == null) {
+			if (m.isPrivate()) {
 				signalError.show("Method '" + messageName + "' was not found in the "
 								 + "public interface of '" + currentClass.getSuper().getName()
 								 + "' or its superclasses");
 			}
-			//Valdeir$
+			
 			/*
 			 * para fazer as conferências semânticas, procure por 'messageName'
 			 * na superclasse/superclasse da superclasse etc
 			 */
 			lexer.nextToken();
 			exprList = realParameters();
-			break;
+			return new MessageSendToSuper(m, exprList);
+					
 		case IDENT:
 			/*
           	 * PrimaryExpr ::=  
@@ -1488,7 +1496,7 @@ public class Compiler {
 								signalError.show("Message send to a non-object receiver");
 							}
 							
-							m = idType.callMethod(ident);
+							m = this.getMethod(firstId, ident);
 							if (m == null) {
 								signalError.show("Method '" + ident + "' was not found in the "
 												+ "public interface of '" + idType.getName()

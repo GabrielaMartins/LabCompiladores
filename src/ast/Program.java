@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package ast;
 
 import java.util.*;
@@ -17,11 +22,16 @@ public class Program {
 		this.compilationErrorList = compilationErrorList;
 	}
 
-
 	public void genKra(PW pw) {
+		
+		classList.genKra(pw);
 	}
 
 	public void genC(PW pw) {
+	}
+	
+	public void setClassList(KraClassList classList) {
+		this.classList = classList;
 	}
 	
 	public KraClassList getClassList() {

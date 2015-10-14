@@ -15,6 +15,10 @@ public class MethodList {
     public MethodList() {
        methodList = new ArrayList<Method>();
     }
+    
+    public void genKra(PW pw) {
+    	
+    }
 
     public void addElement(Method method) {
        methodList.add( method );

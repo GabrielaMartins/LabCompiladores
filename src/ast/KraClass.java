@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package ast;
 
 /*
@@ -28,6 +33,30 @@ public class KraClass extends Type {
 		this.privateMethodList = new MethodList();
         this.localTable  = new HashMap<String, Variable>();
 	}
+	
+    public void genKra(PW pw) {
+    	
+    	if (qualifier != null) {
+    		pw.print(qualifier.name() + " ");
+    	}
+    	pw.print("Class " + this.getName() + " ");
+    	
+    	if (superClass != null) {
+    		pw.print("extends " + superClass.getName() + " ");
+    	}
+    	pw.println("{");
+    	
+    	Iterator<InstanceVariableList> it = instanceVariableList.iterator();
+    	while (it.hasNext()) {
+    		it.next().genKra(pw);
+    	}
+    	
+    	this.privateMethodList.genKra(pw);
+    	this.publicMethodList.genKra(pw);
+    	
+    	pw.println("}");
+    	pw.println("");
+    }
 
 	public String getCname() {
 		return getName();
