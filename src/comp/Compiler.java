@@ -845,6 +845,15 @@ public class Compiler {
 					String typeName = ((VariableExpr) left).getV().getName();
 					localDecType(typeName);
 				}
+				
+				if (left instanceof MessageSendToVariable ||
+						left instanceof MessageSendToSuper ||
+						left instanceof MessageSendToSelf) {
+					
+					if (left.getType() != Type.voidType) {
+						signalError.show("Message send returns a value that is not used");
+					}
+				}
 			}
 		}
 		
