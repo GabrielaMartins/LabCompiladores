@@ -258,12 +258,8 @@ public class Compiler {
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
 				if (met.getQualifier() == Symbol.PUBLIC) {
 					currentClass.addPublicMethod(met);
-					System.out.println("Metodos publicos:");
-					currentClass.printPublic();
 				} else {
 					currentClass.addPrivateMethod(met);
-					System.out.println("Metodos privados:");
-					currentClass.printPrivate();
 				}
 				symbolTable.putInGlobal(currentClass.getName(), currentClass);
 			} else if ( qualifier != Symbol.PRIVATE ) {
@@ -1165,7 +1161,6 @@ public class Compiler {
 			lexer.nextToken();
 			Expr right = term();
 			//ER-SEM08 - SEM09
-			System.out.println(left.getType());
 			if(left.getType()!= Type.intType && 
 					(op == Symbol.MINUS || op==Symbol.PLUS)){
 				signalError.show("type " + left.getType().getName()+ " does not support operation '" + op.toString() + "'");
@@ -1647,7 +1642,6 @@ public class Compiler {
 				|| token == Symbol.IDENT || token == Symbol.LITERALSTRING;
 
 	}
-	
 	
 	private KraClass getClass(String name) {
 		
