@@ -9,6 +9,10 @@ public class UnaryExpr extends Expr {
 		this.expr = expr;
 		this.op = op;
 	}
+	
+	public void genKra(PW pw, boolean putParenthesis ){
+
+	}
 
 	@Override
 	public void genC(PW pw, boolean putParenthesis) {

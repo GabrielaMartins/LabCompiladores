@@ -35,23 +35,48 @@ public class Method implements Comparable<Method> {
     }
     
     public void genKra(PW pw){
+    	pw.add();
+    	boolean first = true;
     	if(this.finalQualifier != null){
-    		pw.printIdent(this.finalQualifier.name() + " ");
+    		pw.printIdent(this.finalQualifier.toString() + " ");
     		if(this.staticQualifier != null){
-    			pw.print(this.staticQualifier.name()+ " ");
+    			pw.print(this.staticQualifier.toString()+ " ");
     		}
-    		pw.print(this.qualifier.name()+ " ");
+    		pw.print(this.qualifier.toString()+ " ");
     	}else if(this.staticQualifier != null){
-    		pw.printIdent(this.staticQualifier.name() + " ");
-    		pw.print(this.qualifier.name()+ " ");
+    		pw.printIdent(this.staticQualifier.toString() + " ");
+    		pw.print(this.qualifier.toString()+ " ");
     	}else{
-    		pw.printIdent(this.qualifier.name()+ " ");
+    		pw.printIdent(this.qualifier.toString()+ " ");
     	}
     	   	
-    	pw.print(this.getName() + "( ");
+    	pw.print(this.getName() + "(");
     	this.paramList.genKra(pw);
-    	pw.print(" ){");
+    	pw.println("){");
+    	Iterator<LocalVariableList> it = variableList.iterator();
+    	pw.add();
+    	while(it.hasNext()){
+    		Iterator<Variable> it2 = it.next().elements();
+    		while (it2.hasNext()){
+    			Variable v = it2.next();
+    			if(first == true){
+    				pw.printIdent(v.getType().getName() + " ");
+    				first = false;
+    			}
+    			
+    			v.genKra(pw);
+    			
+    			if(it2.hasNext()){
+    				pw.print(", ");
+    			}
+    		}
+    		
+    		first = true;
+    		pw.println(";");
+    	}
+    	pw.sub();
     	this.statements.genKra(pw);
+    	pw.sub();
     	pw.println("}");
     	pw.println("");
     }

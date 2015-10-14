@@ -18,5 +18,8 @@ public class ReturnStatement extends Statement {
 	@Override
 	public void genC(PW pw) {
 	}
+	
+	public void genKra(PW pw){
+	}
 
 }

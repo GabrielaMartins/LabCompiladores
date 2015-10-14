@@ -39,7 +39,7 @@ public class KraClass extends Type {
     	if (qualifier != null) {
     		pw.print(qualifier.name() + " ");
     	}
-    	pw.print("Class " + this.getName() + " ");
+    	pw.print("class " + this.getName() + " ");
     	
     	if (superClass != null) {
     		pw.print("extends " + superClass.getName() + " ");

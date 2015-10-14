@@ -16,6 +16,19 @@ public class AssignmentStatement extends Statement {
 		
 	}
 	
+	public void genKra(PW pw){
+		pw.add();
+		if(this.left != null){
+			this.left.genKra(pw, false);
+		}
+		if(this.right!= null){
+			pw.print(this.getType().toString());
+			this.right.genKra(pw, false);
+		}
+		if(this.left != null || this.right != null)
+			pw.println(";");
+	}
+	
 	public StatementType getType(){
 		return type;
 	}

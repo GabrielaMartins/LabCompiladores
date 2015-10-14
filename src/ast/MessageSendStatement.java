@@ -10,6 +10,10 @@ public class MessageSendStatement extends Statement {
 		pw.println(";");
 	}
 	
+	public void genKra( PW pw) {
+        
+    }
+	
 	@Override
 	public StatementType getType() {
 		return null;

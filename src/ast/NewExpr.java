@@ -15,4 +15,8 @@ public class NewExpr extends Expr {
 	public void genC(PW pw, boolean putParenthesis ){
 		
 	}
+	
+	public void genKra(PW pw, boolean putParenthesis ){
+
+	}
 }

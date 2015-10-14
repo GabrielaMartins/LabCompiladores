@@ -7,8 +7,14 @@ public class Variable {
         this.type = type;
         this.isNull = false;
     }
+    
+    public void genKra(PW pw) {
+    	pw.print(getName());
+    }
 
-    public String getName() { return name; }
+    public String getName() { 
+    	return name; 
+    }
 
     public Type getType() {
         return type;

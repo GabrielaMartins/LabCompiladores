@@ -19,7 +19,15 @@ public class StatementList {
     }
     
     public void genKra(PW pw){
+    	Iterator<Statement> it = this.elements();
     	
+    	while(it.hasNext()){
+    		Statement s = it.next();
+    		if(s==null){
+    			pw.print(";");
+    		}else
+    			s.genKra(pw);
+    	}
     }
 
     public void addElement(Statement statement) {

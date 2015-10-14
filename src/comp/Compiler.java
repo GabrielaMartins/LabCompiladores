@@ -1270,7 +1270,7 @@ public class Compiler {
 		Expr e;
 		ExprList exprList = null;
 		String messageName, ident;
-		Method m;
+		Method m = null;;
 
 		switch (lexer.token) {
 		// IntValue
@@ -1623,7 +1623,7 @@ public class Compiler {
 					}
 					//$Gabriela
 					
-					return new ThisExpr(type, exprList);
+					return new MessageSendToSelf(m, exprList);
 				}
 			}
 			break;
