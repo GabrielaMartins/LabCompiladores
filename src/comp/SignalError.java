@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package comp;
 import java.io.*;
 import java.util.ArrayList;
