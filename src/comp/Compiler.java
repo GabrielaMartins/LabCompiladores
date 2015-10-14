@@ -260,8 +260,8 @@ public class Compiler {
 				//lista de variáveis que deve estar como private na classe 
 				signalError.show("Attempt to declare public instance variable '" + name + "'");
 			} else {
-				
-				currentClass.addVariableList(instanceVarDec(t, name));
+				boolean isStatic = (staticQualifier != null) ? true : false;
+				currentClass.addVariableList(instanceVarDec(t, name, isStatic));
 				//instanceVarDec(t, name);
 			}			
 		}
@@ -287,7 +287,7 @@ public class Compiler {
 		return currentClass;
 	}
 //feito
-	private InstanceVariableList instanceVarDec(Type type, String name) {
+	private InstanceVariableList instanceVarDec(Type type, String name, boolean isStatic) {
 		// InstVarDec ::= [ "static" ] "private" Type IdList ";"
 		
 		InstanceVariable var;
@@ -296,8 +296,8 @@ public class Compiler {
 		//Cada classe tem sua propria localTable, deixamos symbolTable.localTable
 		//para variaveis locais!
 		var = (InstanceVariable) currentClass.getInLocal(name);
-		if(var == null){
-			var = new InstanceVariable(name, type);
+		if(var == null || var.isStatic() && ! isStatic){
+			var = new InstanceVariable(name, type, isStatic);
 			currentClass.putInLocal(name, var);
 			listVar.addElement(var);
 		}else{
@@ -312,10 +312,10 @@ public class Compiler {
 			String variableName = lexer.getStringValue();
 			var = (InstanceVariable) currentClass.getInLocal(variableName);
 			
-			if (var == null) {
+			if (var == null || var.isStatic() && ! isStatic) {
 				//Se a variável não está na tabela então coloca
 				//variáveis de instancia não seriam globais?
-				var = new InstanceVariable(variableName, type);
+				var = new InstanceVariable(variableName, type, isStatic);
 				currentClass.putInLocal(variableName, var);
 				listVar.addElement(var);				
 			} else {
@@ -437,7 +437,6 @@ public class Compiler {
 
 	}
 	
-//feito
 	private LocalVariableList localDec() {
 		// LocalDec ::= Type IdList ";"
 		
@@ -492,6 +491,71 @@ public class Compiler {
 		if(lexer.token != Symbol.SEMICOLON){
 			signalError.show("Missing ';'");
 		}
+		
+		currentMethod.addVariableList(localVarList);
+		return localVarList;
+	}
+	
+	private LocalVariableList localDecType(String typeName) {
+		// LocalDec ::= Type IdList ";"
+		
+		Variable v;
+		LocalVariableList localVarList = new LocalVariableList();
+
+		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
+		
+		if (! isType(typeName)) {
+			signalError.show("Type '" + typeName + "' was not found");
+		}
+		
+		Type type = new TypeIdent(typeName);
+		
+		//verifica de váriável já foi declarada
+		
+		String name = lexer.getStringValue();
+		//v = (Variable) symbolTable.get(name);
+		v = symbolTable.getInLocal(name);
+		
+		if(v==null){
+			v = new Variable(name, type);
+			//symbolTable.putInLocal(name, v);
+			symbolTable.putInLocal(name, v);
+			localVarList.addElement(v);//?
+		}else{
+			signalError.show("Variable " + name + " is being redeclared");
+		}
+		
+		lexer.nextToken();
+			
+		while (lexer.token == Symbol.COMMA) {
+			lexer.nextToken();
+			
+			//ER-SIN02: arrumando mensagem de erro
+			if ( lexer.token != Symbol.IDENT )
+				signalError.show("Missing identifier");
+			
+			name = lexer.getStringValue();
+			//v = (Variable) symbolTable.get(name);
+			v = symbolTable.getInLocal(name);
+			
+			if(v==null){
+				v = new Variable(name, type);
+				//symbolTable.putInLocal(name, v);
+				symbolTable.putInLocal(name, v);
+				localVarList.addElement(v);
+			}else{
+				signalError.show("Variable " + name + " is being redeclared");
+			}
+			
+			lexer.nextToken();
+		
+		}
+		
+		if(lexer.token != Symbol.SEMICOLON){
+			signalError.show("Missing ';'");
+		}
+		
+		currentMethod.addVariableList(localVarList);
 		
 		return localVarList;
 	}
@@ -663,7 +727,13 @@ public class Compiler {
 	 * fazer uma busca na tabela de símbolos para isto.
 	 */
 	private boolean isType(String name) {
-		return this.symbolTable.getInGlobal(name) != null;
+		KraClass classe = this.symbolTable.getInGlobal(name);
+		
+		if (classe == null) {
+			return (currentClass.getName().equals(name));
+		}
+		
+		return classe != null;
 	}
 
 	/*
@@ -674,53 +744,33 @@ public class Compiler {
 		Expr right = null;
 		
 		if ( lexer.token == Symbol.INT || lexer.token == Symbol.BOOLEAN
-				|| lexer.token == Symbol.STRING ||
-				// token é uma classe declarada textualmente antes desta
-				// instrução
-				
-				//a merda tá dando aqui :
-				//tem que verificar se o ident é um tipo, se ele for, manda pro localdec
-				//mas se ele não for, já assume que é uma variável. Mas pode ser que nem 
-				//Err-SEM18, onde é um tipo que não tem uma classe, então teria que dar um erro
-				//de não ter encontrado o tipo. Se eu fizer a verificação no else, ele pode
-				//ser uma variável e não um tipo
-				(lexer.token == Symbol.IDENT && isType(lexer.getStringValue())) ) {
+				|| lexer.token == Symbol.STRING ) {
 			/*
 			 * uma declaração de variável. 'lexer.token' é o tipo da variável
 			 * 
 			 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ] | LocalDec 
 			 * LocalDec ::= Type IdList ``;''
 			 */
-			localDec();//?
+			localDec();
 		} else {
 			/*
 			 * AssignExprLocalDec ::= Expression [ ``$=$'' Expression ]
 			 */
-			//verificando se uma variável foi declarada {ER-SEM02}
-			if(lexer.token == Symbol.IDENT){
-				String name = lexer.getStringValue();
-				//Variable var = symbolTable.getInLocal(name);
-				Variable var = symbolTable.getInLocal(name);
-				
-				//Gabriela
-				if(var == null){
-					//Valdeir
-					//var = currentClass.getInLocal(name);
-					//if (var != null) {
-						//signalError.show("Identifier '"+ name +"' was not found");
-					//}
-					//Valdeir$
-					
-					//if (var == null) {
-						signalError.show("Variable " + name + " was not declared");
-					//}
-				}
-				//$Gabriela
-			}
 			
 			left = expr();
 			
 			if ( lexer.token == Symbol.ASSIGN ) {
+				
+				if (left instanceof VariableExpr) {
+					String varName = ((VariableExpr) left).getV().getName();
+					Variable v = symbolTable.getInLocal(varName);
+					if (v == null) {
+						signalError.show("Variable '" + varName + "' was not declared");
+					}
+					
+					left = new VariableExpr(v);
+				}
+				
 				lexer.nextToken();
 				right = expr();
 				//ER-SEM04
@@ -778,6 +828,12 @@ public class Compiler {
 				else
 					lexer.nextToken();
 				
+			} else {
+				//Assume que é um possível tipo
+				if (left instanceof VariableExpr) {
+					String typeName = ((VariableExpr) left).getV().getName();
+					localDecType(typeName);
+				}
 			}
 		}
 		
@@ -1366,15 +1422,26 @@ public class Compiler {
 			if ( lexer.token != Symbol.DOT ) {
 				// Id
 				// retorne um objeto da ASA que representa um identificador
-								
-				//Arrumado: colocando como retorno um variableExpr 
-				//Variable var = symbolTable.getInLocal(firstId);
-				Variable var = symbolTable.getInLocal(firstId);
-				//Valdeir
+				
+				//ER-SEM63
+				if (lexer.token == Symbol.LEFTPAR) {
+					if (currentClass.searchStaticMethod(firstId) != null) {
+						signalError.show("'.' or '=' expected after an identifier OR statement expected");
+					}
+				}
+				
+				Variable var;
+				if (lexer.token == Symbol.IDENT || lexer.token == Symbol.ASSIGN) {
+					var = new Variable(firstId, Type.undefinedType);
+					return new VariableExpr(var);
+				}
+				
+				var = symbolTable.getInLocal(firstId);
 				if (var == null) {
 					signalError.show("Variable '" + firstId + "' was not declared");
 				}
-				//Valdeir$
+				
+				//Arrumado: colocando como retorno um variableExpr 
 				
 				return new VariableExpr(var);
 			} else { // Id "."
@@ -1434,8 +1501,8 @@ public class Compiler {
 						
 							m = idType.callStaticMethod(ident);
 							if (m == null) {
-								signalError.show("Method '" + ident + "' was not found in class '" 
-										+ idType.getName()+ "' or its superclasses");
+								signalError.show("Static method '" + ident + "' was not found in class '" 
+												 + idType.getName() + "'");
 							}
 
 							//A.id fora da classe A
@@ -1600,6 +1667,11 @@ public class Compiler {
 			className = symbolTable.getInGlobal(varType);
 		} else {
 			className = symbolTable.getInGlobal(name);
+			if (className == null) {
+				if (currentClass.getName().equals(name)) {
+					className = currentClass;
+				}
+			}
 		}
 		
 		return className;
