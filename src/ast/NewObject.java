@@ -22,6 +22,6 @@ public class NewObject extends Expr {
 	}
 	
 	public Type getType(){
-		return new TypeIdent(newClass.getName());
+		return newClass;
 	}
 }

@@ -50,6 +50,6 @@ public class MessageSendToSelf extends MessageSend {
         	return var.getType();
         }
         
-        return new TypeIdent(thisClass.getName());
+        return thisClass;
     }
 }

@@ -518,7 +518,7 @@ public class Compiler {
 			signalError.show("Type '" + typeName + "' was not found");
 		}
 		
-		Type type = new TypeIdent(typeName);
+		Type type = symbolTable.getInGlobal(typeName);
 		
 		//verifica de váriável já foi declarada
 		
@@ -635,7 +635,7 @@ public class Compiler {
 			
 			//corrigindo: ER-SEM18
 			if(isType(nameType)== true){
-				result = new TypeIdent(nameType);
+				result = symbolTable.getInGlobal(nameType);
 			}else{
 				signalError.show("Type " + nameType + " was not found");
 			}
@@ -792,13 +792,13 @@ public class Compiler {
 						signalError.show("Type error: value of the right-hand side is not subtype of the variable of the left-hand side.");
 					}
 					
-					if(left.getType()instanceof TypeIdent && 
+					if(left.getType()instanceof KraClass && 
 							(right.getType() == Type.intType || right.getType() == Type.booleanType || right.getType() == Type.stringType)){
 						signalError.show("Type error: the type of the expression of the right-hand side is a basic type and the type of the variable of the left-hand side is a class");
 					}
 					
 					if((left.getType() == Type.intType || left.getType() == Type.booleanType || left.getType() == Type.stringType) &&
-							right.getType()instanceof TypeIdent){
+							right.getType()instanceof KraClass){
 						signalError.show("Type error: type of the left-hand side of the assignment is a basic type and the type of the right-hand side is a class");
 					}
 				
@@ -810,7 +810,7 @@ public class Compiler {
 				}
 				
 				//ER-SEM38
-				if(left.getType() instanceof TypeIdent && right.getType() instanceof TypeIdent){
+				if(left.getType() instanceof KraClass && right.getType() instanceof KraClass){
 					String typeLeftName = left.getType().getName();
 					String typeRightName = right.getType().getName();
 					
@@ -916,7 +916,7 @@ public class Compiler {
 		e = expr();
 		//Ta bugando muitos erros ainda, vou deixar comentado por enquanto
 		//ER-SEM39: Retorno com tipos incompativeis
-		if(e.getType() instanceof TypeIdent && currentMethod.getType() instanceof TypeIdent){
+		if(e.getType() instanceof KraClass && currentMethod.getType() instanceof KraClass){
 			String typeReturned = e.getType().getName();
 			String typeOfMethod = currentMethod.getType().getName();
 
@@ -966,7 +966,7 @@ public class Compiler {
 					signalError.show("Command 'read' does not accept '" + var.getType().getName() + "' variables");
 				}
 				
-				if(var!=null && var.getType() instanceof TypeIdent){
+				if(var!=null && var.getType() instanceof KraClass){
 					signalError.show("'int' or 'String' expression expected");
 				}
 				
@@ -983,7 +983,7 @@ public class Compiler {
 					signalError.show("Command 'read' does not accept '" + var.getType().getName() +"' variables");
 				}
 				
-				if(var!=null && var.getType() instanceof TypeIdent){
+				if(var!=null && var.getType() instanceof KraClass){
 					signalError.show("'int' or 'String' expression expected");
 				}
 				
@@ -1032,7 +1032,7 @@ public class Compiler {
 			if(e.getType() == Type.booleanType){
 				signalError.show("Command 'write' does not accept '"+ Type.booleanType.getName() +"' expressions");
 			}
-			if(e.getType()instanceof TypeIdent){
+			if(e.getType()instanceof KraClass){
 				signalError.show("Command 'write' does not accept objects");
 			}
 			
@@ -1119,14 +1119,14 @@ public class Compiler {
 			
 			Variable var = null;
 			
-			if(left.getType()instanceof TypeIdent){
+			if(left.getType()instanceof KraClass){
 				var = ((VariableExpr)left).getV();
 				if(var.getIsNull() == true && (op == Symbol.NEQ || op == Symbol.EQ)){
 					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
 				}
 			}
 			
-			if(right.getType()instanceof TypeIdent){
+			if(right.getType()instanceof KraClass){
 				var = ((VariableExpr)right).getV();
 				if(var.getIsNull()==true && (op == Symbol.NEQ || op == Symbol.EQ)){
 					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
