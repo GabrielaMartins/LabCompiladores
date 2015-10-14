@@ -829,6 +829,11 @@ public class Compiler {
 					symbolTable.putInLocal(var.getName(), var);
 				}
 				
+				//ER-SEM36: Retornando void para uma variavel
+				if (right.getType() == Type.voidType) {
+					signalError.show("Expression expected in the right-hand side of assignment");
+				}
+				
 				if ( lexer.token != Symbol.SEMICOLON )
 					signalError.show("Missing ';'", true);
 				else
@@ -1508,6 +1513,8 @@ public class Compiler {
 						}
 						
 						exprList = this.realParameters();
+						Variable var = symbolTable.getInLocal(firstId);
+						return new MessageSendToVariable(var, m, exprList);
 						/*
 						 * para fazer as conferências semânticas, procure por
 						 * método 'ident' na classe de 'firstId'
