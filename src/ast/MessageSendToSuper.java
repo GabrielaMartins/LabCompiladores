@@ -14,13 +14,21 @@ public class MessageSendToSuper extends MessageSend {
 		this.m = method;
 		this.realParams = params;
 	}
-
-    public Type getType() { 
-        return m.getType();
-    }
+	
+	public void genKra(PW pw, boolean putParenthesis) {
+		pw.add();
+		pw.printIdent("super.");
+		pw.sub();
+		//realParams.genKra(pw, true);
+		pw.add();
+		pw.printlnIdent(";");
+	}
 
     public void genC( PW pw, boolean putParenthesis ) {
         
     }
     
+    public Type getType() { 
+        return m.getType();
+    }    
 }

@@ -1334,7 +1334,7 @@ public class Compiler {
 				signalError.show("Class '" + className + "' was not found");
 			}
 			
-			//ER-SIN58: Construtores nao tem parâmetro
+			//ER-SIN58: Construtores não devem ter parâmetro
 			if (lexer.token != Symbol.LEFTPAR) {
 				signalError.show("'(' expected");
 			}
@@ -1344,9 +1344,6 @@ public class Compiler {
 			}
 			lexer.nextToken();
 			
-			Type t = new TypeIdent(aClass.getName());
-			//Type t = type();
-			
 			//exprList = this.realParameters();
 			
 			//lexer.nextToken();		
@@ -1355,10 +1352,8 @@ public class Compiler {
 			 * return an object representing the creation of an object
 			 */
 			
-			return new NewExpr(t);
-			
-			//$Gabriela
-			
+			return new NewObject(aClass);
+						
 			/*
           	 * PrimaryExpr ::= "super" "." Id "(" [ ExpressionList ] ")"  | 
           	 *                 Id  |
@@ -1534,7 +1529,6 @@ public class Compiler {
 			}
 			break;
 		case THIS:
-			Type type = null;
 			/*
 			 * Este 'case THIS:' trata os seguintes casos: 
           	 * PrimaryExpr ::= 
@@ -1555,8 +1549,7 @@ public class Compiler {
 					signalError.show("Attempt to access an instance variabel using 'this' in a static method");
 				}
 				
-				//pode retornar só this?
-				return null;
+				return new MessageSendToSelf(currentClass);
 			}
 			else {
 				lexer.nextToken();
@@ -1579,18 +1572,17 @@ public class Compiler {
 						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
 					}
 					
-					//Gabriela
 					m = currentClass.searchMethod(ident);
 					if(m==null){
 						signalError.show("Method '"+ ident+ "' was not found in class '" 
 										 + currentClass.getName()+ "' or its superclasses");
 					}
-					type = m.getType();
-					//Gabriela$
 					
 					exprList = this.realParameters();
 					
 					//Tratar erro de passagem de parâmetros incorretos
+					
+					//return new MessageSendToSelf(currentClass, m, exprList);
 				}
 				else if ( lexer.token == Symbol.DOT ) {
 					// "this" "." Id "." Id "(" [ ExpressionList ] ")"
@@ -1607,23 +1599,18 @@ public class Compiler {
 					 * variável de instância 'ident'
 					 */
 					
-					//Gabriela
 					InstanceVariable var = (InstanceVariable) currentClass.getInLocal(ident);
 					if(var==null){
 						signalError.show("Instance variable '" + ident + "' was not found in class '"
 										 + currentClass.getName()+ "'");
-					}
-					if(type == null){
-						type = var.getType();
 					}
 					
 					//ER-SEM71: Chamada a this em método static
 					if (currentMethod.isStatic()) {
 						signalError.show("Attempt to access an instance variabel using 'this' in a static method");
 					}
-					//$Gabriela
 					
-					return new ThisExpr(type, exprList);
+					return new MessageSendToSelf(currentClass, var);
 				}
 			}
 			break;
