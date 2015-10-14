@@ -11,14 +11,18 @@ package ast;
 import java.util.*;
 
 public class MethodList {
+	
+    private ArrayList<Method> methodList;
 
     public MethodList() {
        methodList = new ArrayList<Method>();
     }
     
     public void genKra(PW pw) {
-    	while(this.elements().hasNext()){
-    		 this.elements().next().genKra(pw);
+    	
+    	Iterator<Method> it = elements();
+    	while (it.hasNext()) {
+    		it.next().genKra(pw);
     	}
     }
 
@@ -33,7 +37,4 @@ public class MethodList {
     public int getSize() {
         return methodList.size();
     }
-
-    private ArrayList<Method> methodList;
-
 }
