@@ -1260,6 +1260,7 @@ public class Compiler {
 		Expr e;
 		ExprList exprList = null;
 		String messageName, ident;
+		Method m;
 
 		switch (lexer.token) {
 		// IntValue
@@ -1385,6 +1386,7 @@ public class Compiler {
 			//Gabriela 
 			//ER-SEM47: Método inexistente em super
 			messageName = lexer.getStringValue();
+			//m = this.getMethod(currentClass.getName(), messageName);
 			if(currentClass.searchMethodS(messageName)==null){
 				signalError.show("Method '"+ messageName +"' was not found in superclass '" 
 								 + currentClass.getName() + "' or its superclasses");
@@ -1473,7 +1475,7 @@ public class Compiler {
 
 					} else if ( lexer.token == Symbol.LEFTPAR ) {
 						// Id "." Id "(" [ ExpressionList ] ")"						
-						Method m;
+						//Method m;
 						
 						//É objeto recebendo mensagem
 						//ER-SEM59: Chamada a método privado
@@ -1570,7 +1572,7 @@ public class Compiler {
 					}
 					
 					//Gabriela
-					Method m = currentClass.searchMethod(ident);
+					m = currentClass.searchMethod(ident);
 					if(m==null){
 						signalError.show("Method '"+ ident+ "' was not found in class '" 
 										 + currentClass.getName()+ "' or its superclasses");

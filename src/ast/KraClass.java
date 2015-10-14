@@ -154,7 +154,12 @@ public class KraClass extends Type {
 	public Method searchMethodS(String name) {
 
 		if (superClass != null) {
-			return superClass.searchMethod(name);
+			
+			Method m = superClass.searchMethod(name);
+			if (m == null)
+				return superClass.searchMethodS(name);
+			else
+				return m;
 		}
 
 		return null;
