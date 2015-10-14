@@ -1416,7 +1416,7 @@ public class Compiler {
 			 */
 
 			String firstId = lexer.getStringValue();
-			KraClass idType = getClass(firstId);
+			KraClass idType = null;
 			
 			lexer.nextToken();
 			if ( lexer.token != Symbol.DOT ) {
@@ -1479,6 +1479,8 @@ public class Compiler {
 						//ER-SEM59: Chamada a método privado
 						if (isType(firstId) == false) {
 							
+							idType = getClass(symbolTable.getInLocal(firstId).getType().getName());
+							
 							//ER-SEM07: Mensagem sendo enviada para tipo básico
 							if (idType == null) {
 								signalError.show("Message send to a non-object receiver");
@@ -1489,16 +1491,11 @@ public class Compiler {
 								signalError.show("Method '" + ident + "' was not found in the "
 												+ "public interface of '" + idType.getName()
 												+ "' or its superclasses");
-							} else {
-								/*if (m.isStatic()) {
-									signalError.show("Method '" + ident + "' was not found in class"
-													 + "' " + idType.getName() + "' or its superclasses");
-								}*/
 							}
 						} else {
 						
-						//Senão considera que é classe!
-						
+							//Senão considera que firtsId é classe!
+							idType = getClass(firstId);
 							m = idType.callStaticMethod(ident);
 							if (m == null) {
 								signalError.show("Static method '" + ident + "' was not found in class '" 
@@ -1512,12 +1509,6 @@ public class Compiler {
 									signalError.show("Method '" + ident + "' was not found in class"
 													 + "' " + idType.getName() + "' or its superclasses");
 								}
-							} else {
-								//Se esta dentro da mesma classe, o único requisito é ser static
-								/*if (m.isStatic() == false) {
-									signalError.show("Method '" + ident + "' was not found in class '" 
-											+ idType.getName()+ "'");
-								}*/
 							}
 						}
 						
@@ -1677,6 +1668,23 @@ public class Compiler {
 		return className;
 	}
 	//Gabriela$
+	
+	private Method getMethod(String ident, String name) {
+		
+		if (name.equals(currentMethod.getName())) {
+			return currentMethod;
+		}
+		
+		if (isType(ident)) {
+			return symbolTable.getInGlobal(ident).searchStaticMethod(name);
+		}
+		
+		String tipo = symbolTable.getInLocal(ident).getType().getName();
+		KraClass classe = symbolTable.getInGlobal(tipo);
+		
+		return classe.callMethod(name);
+		
+	}
 
 	private SymbolTable		symbolTable;
 	private Lexer			lexer;
