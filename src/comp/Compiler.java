@@ -951,6 +951,7 @@ public class Compiler {
 		if (lexer.token == Symbol.RIGHTPAR) {
 			signalError.show("Command 'read' without arguments");
 		}
+		
 		while (true) {
 			if ( lexer.token == Symbol.THIS ) {
 				lexer.nextToken();
@@ -1000,7 +1001,7 @@ public class Compiler {
 			if ( lexer.token == Symbol.COMMA ) {
 				lexer.nextToken();
 				//ER-SIN05: quando fica uma , sem um ident ou this depois
-				if (lexer.token != Symbol.IDENT || lexer.token != Symbol.THIS) {
+				if (lexer.token != Symbol.IDENT && lexer.token != Symbol.THIS) {
 					signalError.show("Expression expected");
 				}
 			} else
