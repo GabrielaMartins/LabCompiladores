@@ -17,6 +17,10 @@ public class StatementList {
     public StatementList() {
     	statementList = new ArrayList<Statement>();
     }
+    
+    public void genKra(PW pw){
+    	
+    }
 
     public void addElement(Statement statement) {
     	statementList.add( statement );

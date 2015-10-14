@@ -7,6 +7,10 @@ public class ParameterList {
     public ParameterList() {
        paramList = new ArrayList<Parameter>();
     }
+    
+    public void genKra(PW pw){
+    	
+    }
 
     public void addElement(Parameter p) {
        paramList.add(p);

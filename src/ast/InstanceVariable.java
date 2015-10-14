@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package ast;
 
 public class InstanceVariable extends Variable {
@@ -11,6 +16,10 @@ public class InstanceVariable extends Variable {
     
     public boolean isStatic() {
     	return this.isStatic;
+    }
+    
+    public void genKra(PW pw){
+    	pw.print(getName());
     }
 
 }

@@ -1,3 +1,8 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
+
 package ast;
 
 import java.util.*;
@@ -9,7 +14,35 @@ public class InstanceVariableList {
     }
     
     public void genKra(PW pw) {
+    	pw.add();
+    	Iterator <InstanceVariable> it = instanceVariableList.iterator();
+    	boolean firstIt = true;
     	
+    	while(it.hasNext()){
+    		InstanceVariable iv = it.next();
+    		
+    		if(firstIt == true){
+    			if(iv.isStatic()==true){
+    				pw.printIdent("static ");
+    				pw.print("private ");
+    			}else{
+        			pw.printIdent("private ");
+    			}
+    			
+    			pw.print(iv.getType().getName() + " ");
+    		} 
+    		
+    		iv.genKra(pw);
+    		
+    		if(it.hasNext()){
+    			pw.print(", ");
+    		}else{
+    			pw.println(";");
+    		}
+    		
+    	}
+    	
+    	pw.println("");
     }
 
     public void addElement(InstanceVariable instanceVariable) {

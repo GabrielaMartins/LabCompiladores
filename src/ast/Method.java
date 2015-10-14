@@ -33,6 +33,28 @@ public class Method implements Comparable<Method> {
         this.statements = new StatementList();
         this.variableList = new ArrayList<>();
     }
+    
+    public void genKra(PW pw){
+    	if(this.finalQualifier != null){
+    		pw.printIdent(this.finalQualifier.name() + " ");
+    		if(this.staticQualifier != null){
+    			pw.print(this.staticQualifier.name()+ " ");
+    		}
+    		pw.print(this.qualifier.name()+ " ");
+    	}else if(this.staticQualifier != null){
+    		pw.printIdent(this.staticQualifier.name() + " ");
+    		pw.print(this.qualifier.name()+ " ");
+    	}else{
+    		pw.printIdent(this.qualifier.name()+ " ");
+    	}
+    	   	
+    	pw.print(this.getName() + "( ");
+    	this.paramList.genKra(pw);
+    	pw.print(" ){");
+    	this.statements.genKra(pw);
+    	pw.println("}");
+    	pw.println("");
+    }
 
     public String getName() { 
     	return name; 

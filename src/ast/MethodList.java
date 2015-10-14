@@ -17,7 +17,9 @@ public class MethodList {
     }
     
     public void genKra(PW pw) {
-    	
+    	while(this.elements().hasNext()){
+    		 this.elements().next().genKra(pw);
+    	}
     }
 
     public void addElement(Method method) {
