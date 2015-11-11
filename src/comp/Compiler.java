@@ -1579,9 +1579,10 @@ public class Compiler {
 										 + currentClass.getName()+ "' or its superclasses");
 					}
 					
-					exprList = this.realParameters();
-					
-					//Tratar erro de passagem de parâmetros incorretos
+					exprList = this.realParameters();			
+
+					//ER-SEM40: Tipos incorretos na passagem de parâmetro
+					boolean isOk = checkParameters(exprList, m.getParamList());
 					
 					//return new MessageSendToSelf(currentClass, m, exprList);
 				}
@@ -1641,6 +1642,58 @@ public class Compiler {
 				|| token == Symbol.LEFTPAR || token == Symbol.NULL
 				|| token == Symbol.IDENT || token == Symbol.LITERALSTRING;
 
+	}
+	
+	private boolean checkParameters(ExprList realParams, ParameterList methodParams) {
+		int exprSize, metParamSize;
+		
+		//realParams pode ser null quando não foi lido nenhum parametro na chamada do método
+		if (realParams == null) {
+			if (methodParams.getSize() == 0) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		
+		exprSize = realParams.getExprList().size();
+		metParamSize = methodParams.getSize();
+		
+		Iterator<Expr> exprIt = realParams.getExprList().iterator();
+		Iterator<Parameter> metIt =  methodParams.elements();
+		
+		while (exprIt.hasNext() && metIt.hasNext()) {
+			
+			VariableExpr rp = (VariableExpr) exprIt.next();
+			Parameter mp = (Parameter) metIt.next();
+			
+			Type rt = rp.getType();
+			Type mt = mp.getType();
+			
+			if (rt instanceof KraClass && mt instanceof KraClass) {
+				String typeLeftName = mt.getName();
+				String typeRightName = rt.getName();
+				
+				KraClass typeLeft = symbolTable.getInGlobal(typeLeftName);
+				KraClass typeRight = symbolTable.getInGlobal(typeRightName);
+				
+				if((typeLeft.getSuper() != null ) && typeLeft.getSuper().getName() == typeRight.getName()){
+					signalError.show("Type error: the type of the real parameter is not subclass of the type of the formal parameter");
+				}
+			}
+			
+			if (rp.getType() != mp.getType()) {
+				return false;
+			}
+			exprSize--;
+			metParamSize--;
+		}
+		
+		if (exprSize != metParamSize) {
+			return false;
+		}
+		
+		return true;
 	}
 	
 	private KraClass getClass(String name) {
