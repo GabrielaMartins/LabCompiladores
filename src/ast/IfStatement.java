@@ -1,3 +1,7 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
 package ast;
 
 public class IfStatement extends Statement {
@@ -22,6 +26,13 @@ public class IfStatement extends Statement {
 	}
 	
 	public void genKra(PW pw){
-
+		pw.printIdent("if");
+		e.genKra(pw, true);
+		pw.println("{");
+		pw.add();
+		s.genKra(pw);
+		pw.sub();
+		pw.println("}");
+		pw.println("");
 	}
 }

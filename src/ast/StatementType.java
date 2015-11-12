@@ -5,6 +5,7 @@ public enum StatementType {
 	Return("Return"),
 	Assignment("="),
 	Write("Write"),
+	Writeln("Writeln"),
 	Read("Read"),
 	While("While"),
 	If("If"),

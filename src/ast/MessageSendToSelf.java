@@ -20,6 +20,12 @@ public class MessageSendToSelf extends MessageSend {
     }
     
     public void genKra( PW pw, boolean putParenthesis ) {
+    	pw.println("");
+    	pw.printIdent("this.");
+    	pw.print(m.getName()+ "(");
+    	realParams.genKra(pw);
+    	pw.println(");");
+    	
     }
     
     public void genC( PW pw, boolean putParenthesis ) {

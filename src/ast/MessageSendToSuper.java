@@ -24,6 +24,11 @@ public class MessageSendToSuper extends MessageSend {
     }
     
     public void genKra( PW pw, boolean putParenthesis ) {
+    	pw.println("");
+    	pw.printIdent("super.");
+    	pw.print(m.getName()+ "(");
+    	//realParams.genKra(pw);
+    	pw.println(");");
     }
     
 }

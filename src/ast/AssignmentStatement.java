@@ -22,16 +22,21 @@ public class AssignmentStatement extends Statement {
 	}
 	
 	public void genKra(PW pw){
-		pw.add();
 		if(this.left != null){
-			this.left.genKra(pw, false);
-		}
-		if(this.right!= null){
-			pw.print(this.getType().toString());
-			this.right.genKra(pw, false);
-		}
-		if(this.left != null || this.right != null)
+			if(left instanceof VariableExpr){
+				VariableExpr v = (VariableExpr)left;
+				pw.printIdent(v.getV().getName());
+			}else{
+				this.left.genKra(pw, false);
+			}
+			
+			if(this.right!= null){
+				pw.print(this.getType().toString());
+				this.right.genKra(pw, false);
+			}
+				
 			pw.println(";");
+		}	
 	}
 	
 	public StatementType getType(){

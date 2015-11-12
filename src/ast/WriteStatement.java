@@ -20,6 +20,8 @@ public class WriteStatement extends Statement {
 	}
 	
 	public void genKra(PW pw){
-
+		pw.printIdent("write(\"");
+		this.exprlist.genKra(pw);
+		pw.println("\");");
 	}
 }

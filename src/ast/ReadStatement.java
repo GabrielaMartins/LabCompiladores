@@ -20,6 +20,9 @@ public class ReadStatement extends Statement{
 	}
 	
 	public void genKra(PW pw){
-
+		pw.println("");
+		pw.printIdent("read(");
+		this.var.genKra(pw);
+		pw.println(");");
 	}
 }

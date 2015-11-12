@@ -74,10 +74,10 @@ public class Method implements Comparable<Method> {
     		first = true;
     		pw.println(";");
     	}
-    	pw.sub();
+    	pw.println("");
     	this.statements.genKra(pw);
     	pw.sub();
-    	pw.println("}");
+    	pw.printIdent("}");
     	pw.println("");
     }
 

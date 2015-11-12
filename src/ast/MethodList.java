@@ -23,6 +23,8 @@ public class MethodList {
     	Iterator<Method> it = elements();
     	while (it.hasNext()) {
     		it.next().genKra(pw);
+    		pw.sub();
+    		pw.println("");
     	}
     }
 

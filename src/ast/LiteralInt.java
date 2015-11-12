@@ -1,3 +1,7 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
 package ast;
 
 public class LiteralInt extends Expr {
@@ -14,7 +18,7 @@ public class LiteralInt extends Expr {
     }
     
     public void genKra ( PW pw, boolean putParenthesis ) {
-        pw.printIdent("" + value);
+        pw.print("" + value);
     }
     
     public Type getType() {

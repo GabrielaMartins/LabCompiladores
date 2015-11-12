@@ -1,3 +1,7 @@
+/*
+ * Gabriela de Jesus Martins	- 489689
+ * Valdeir Soares Perozim		- 489786
+ */
 package ast;
 
 public class LiteralBoolean extends Expr {
@@ -12,7 +16,7 @@ public class LiteralBoolean extends Expr {
     }
     
     public void genKra(PW pw, boolean putParenthesis){
-
+    	pw.print( value ? "true" : "false" );
     }
 
     @Override

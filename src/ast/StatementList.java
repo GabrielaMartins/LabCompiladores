@@ -23,10 +23,10 @@ public class StatementList {
     	
     	while(it.hasNext()){
     		Statement s = it.next();
-    		if(s==null){
-    			pw.print(";");
-    		}else
+    		if(s!=null){
     			s.genKra(pw);
+    		}
+    			
     	}
     }
 
