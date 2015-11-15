@@ -208,6 +208,14 @@ public class KraClass extends Type {
     public Variable getInLocal(String key) {
     	return localTable.get(key);
     }
+    
+    public boolean isSubClassOf(KraClass maybeSuper) {
+    	if (superClass == null) {
+    		return false;
+    	}
+    	
+    	return (superClass.compareTo(maybeSuper) == 0);
+    }
 
 	@Override
 	public int compareTo(Type o) {
@@ -215,7 +223,7 @@ public class KraClass extends Type {
 			return -1;
 		}
 
-		return this.name.compareTo(o.getName());
+		return this.getName().compareTo(o.getName());
 	}
 
 	public void printPublic() {

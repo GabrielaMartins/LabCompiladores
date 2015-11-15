@@ -1129,7 +1129,7 @@ public class Compiler {
 			
 			Variable var = null;
 			
-			if(left.getType()instanceof KraClass){
+			/*if(left.getType()instanceof KraClass){
 				var = ((VariableExpr)left).getV();
 				if(var.getIsNull() == true && (op == Symbol.NEQ || op == Symbol.EQ)){
 					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
@@ -1141,10 +1141,10 @@ public class Compiler {
 				if(var.getIsNull()==true && (op == Symbol.NEQ || op == Symbol.EQ)){
 					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
 				}
-			}
+			}*/
 			
 			if(!checkRelExpr(left.getType(), right.getType())){
-				signalError.show("Type error in expression");
+				signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
 			}
 			
 			left = new CompositeExpr(left, op, right);
@@ -1153,10 +1153,26 @@ public class Compiler {
 	}
 	
 	private boolean checkRelExpr( Type left, Type right ) {
-		if (left == Type.nullType || right == Type.nullType)
+		
+		if (left == Type.nullType || right == Type.nullType) {
 			return true;
-		else
+		} else if (left instanceof KraClass && right instanceof KraClass) {
+			if (left.compareTo(right) == 0) {
+				return true;
+			} else {
+				KraClass leftC = getClass(left.getName());
+				KraClass rightC = getClass(right.getName());
+				if (leftC.isSubClassOf(rightC)) {
+					return true;
+				} else if (rightC.isSubClassOf(leftC)) {
+					return true;
+				} else {
+					return false;
+				}
+			}
+		} else {
 			return left == right;
+		}
 	}
 
 	private Expr simpleExpr() {
