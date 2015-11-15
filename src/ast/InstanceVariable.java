@@ -17,5 +17,9 @@ public class InstanceVariable extends Variable {
     public boolean isStatic() {
     	return this.isStatic;
     }
+    
+    public void genKra(PW pw){
+    	pw.print(getName());
+    }
 
 }

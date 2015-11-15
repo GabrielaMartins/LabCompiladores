@@ -12,7 +12,7 @@ public class WritelnStatement extends Statement {
 	
 	public WritelnStatement(ExprList exprlist){
 		this.exprlist = exprlist;
-		this.type = StatementType.Write;
+		this.type = StatementType.Writeln;
 	}
 	
 	@Override
@@ -22,5 +22,11 @@ public class WritelnStatement extends Statement {
 	
 	@Override
 	public void genC(PW pw) {
+	}
+	
+	public void genKra(PW pw){
+		pw.printIdent("writeln(\"");
+		this.exprlist.genKra(pw);
+		pw.println("\");");
 	}
 }

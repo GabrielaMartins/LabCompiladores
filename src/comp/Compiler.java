@@ -255,6 +255,7 @@ public class Compiler {
 			
 			
 			if ( lexer.token == Symbol.LEFTPAR ) {
+				this.returnCnt = 0;
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
 				if (met.getQualifier() == Symbol.PUBLIC) {
 					currentClass.addPublicMethod(met);
@@ -429,7 +430,7 @@ public class Compiler {
 		
 		//ER-SEM01: Falta de retorno em método com return type diferente de void
 		StatementList sl = statementList();
-		if (type != Type.voidType && sl.getElement(StatementType.Return) == null) {
+		if (type != Type.voidType && this.returnCnt == 0) {
 			signalError.show("Missing 'return' statement in method '" + name + "'");
 		}
 		currentMethod.setStatementList(sl);
@@ -889,7 +890,7 @@ public class Compiler {
 
 	private IfStatement ifStatement() {
 		Expr e;
-		StatementList s = null;
+		StatementList s = new StatementList();
 		lexer.nextToken();
 		if ( lexer.token != Symbol.LEFTPAR ) signalError.show("( expected");
 		lexer.nextToken();
@@ -911,6 +912,9 @@ public class Compiler {
 
 	private ReturnStatement returnStatement() {
 		Expr e;
+		
+		//ER-SEM01
+		this.returnCnt++;
 		
 		//ER-SEM35: Retorno em método void
 		if (currentMethod.getType() == Type.voidType) {
@@ -1269,7 +1273,7 @@ public class Compiler {
 		Expr e;
 		ExprList exprList = null;
 		String messageName, ident;
-		Method m;
+		Method m = null;;
 
 		switch (lexer.token) {
 		// IntValue
@@ -1613,6 +1617,7 @@ public class Compiler {
 					}
 					
 					return new MessageSendToSelf(currentClass, var);
+
 				}
 			}
 			break;
@@ -1741,5 +1746,6 @@ public class Compiler {
 	private SignalError		signalError;
 	private KraClass 		currentClass;
 	private Method			currentMethod;
-	private Stack<Integer>	whileStack;	
+	private Stack<Integer>	whileStack;
+	private int				returnCnt;
 }

@@ -11,6 +11,8 @@ package ast;
 import java.util.*;
 
 public class MethodList {
+	
+    private ArrayList<Method> methodList;
 
     public MethodList() {
        methodList = new ArrayList<Method>();
@@ -18,6 +20,12 @@ public class MethodList {
     
     public void genKra(PW pw) {
     	
+    	Iterator<Method> it = elements();
+    	while (it.hasNext()) {
+    		it.next().genKra(pw);
+    		pw.sub();
+    		pw.println("");
+    	}
     }
 
     public void addElement(Method method) {
@@ -31,7 +39,4 @@ public class MethodList {
     public int getSize() {
         return methodList.size();
     }
-
-    private ArrayList<Method> methodList;
-
 }

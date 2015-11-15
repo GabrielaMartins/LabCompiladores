@@ -16,18 +16,17 @@ public class MessageSendToSuper extends MessageSend {
 	}
 	
 	public void genKra(PW pw, boolean putParenthesis) {
-		pw.add();
-		pw.printIdent("super.");
-		pw.sub();
-		//realParams.genKra(pw, true);
-		pw.add();
-		pw.printlnIdent(";");
+    	pw.println("");
+    	pw.printIdent("super.");
+    	pw.print(m.getName()+ "(");
+    	//realParams.genKra(pw);
+    	pw.println(");");
 	}
 
     public void genC( PW pw, boolean putParenthesis ) {
         
     }
-    
+
     public Type getType() { 
         return m.getType();
     }    

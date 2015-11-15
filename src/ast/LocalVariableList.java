@@ -8,6 +8,8 @@ package ast;
 import java.util.*;
 
 public class LocalVariableList {
+	
+    private ArrayList<Variable> localList;
 
     public LocalVariableList() {
        localList = new ArrayList<Variable>();
@@ -24,7 +26,4 @@ public class LocalVariableList {
     public int getSize() {
         return localList.size();
     }
-
-    private ArrayList<Variable> localList;
-
 }

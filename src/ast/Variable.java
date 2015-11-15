@@ -12,13 +12,19 @@ public class Variable {
         this.type = type;
         this.isNull = false;
     }
+    
+    public void genKra(PW pw) {
+    	pw.print(getName());
+    }
 
-    public String getName() { return name; }
+    public String getName() { 
+    	return name; 
+    }
 
     public Type getType() {
         return type;
     }
-    //Gabriela
+
     public void setIsNull(boolean isNull){
     	this.isNull = isNull;
     }
@@ -26,11 +32,9 @@ public class Variable {
     public boolean getIsNull(){
     	return this.isNull;
     }
-    //$Gabriela
 
     private String name;
     private Type type;
-    //Gabriela
+
     private boolean isNull;
-    //$Gabriela
 }

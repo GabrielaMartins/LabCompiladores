@@ -23,4 +23,10 @@ public class WriteStatement extends Statement {
 	@Override
 	public void genC(PW pw) {
 	}
+	
+	public void genKra(PW pw){
+		pw.printIdent("write(\"");
+		this.exprlist.genKra(pw);
+		pw.println("\");");
+	}
 }

@@ -17,6 +17,18 @@ public class StatementList {
     public StatementList() {
     	statementList = new ArrayList<Statement>();
     }
+    
+    public void genKra(PW pw){
+    	Iterator<Statement> it = this.elements();
+    	
+    	while(it.hasNext()){
+    		Statement s = it.next();
+    		if(s!=null){
+    			s.genKra(pw);
+    		}
+    			
+    	}
+    }
 
     public void addElement(Statement statement) {
     	statementList.add( statement );

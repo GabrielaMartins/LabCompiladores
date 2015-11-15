@@ -23,5 +23,12 @@ public class ReturnStatement extends Statement {
 	@Override
 	public void genC(PW pw) {
 	}
+	
+	public void genKra(PW pw){
+		pw.println("");
+		pw.printIdent("return");
+		expr.genKra(pw, false);
+		pw.println(";");
+	}
 
 }

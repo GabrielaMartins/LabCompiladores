@@ -14,7 +14,7 @@ public class NewObject extends Expr {
 	}
 	
 	public void genKra(PW pw, boolean putParenthesis) {
-		
+		pw.print("new " + this.newClass.getName() + "()");
 	}
 	
 	public void genC(PW pw, boolean putParenthesis ){

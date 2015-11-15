@@ -21,7 +21,15 @@ public class MessageSendToVariable extends MessageSend {
 	}
 	
 	public void genKra(PW pw, boolean putParenthesis) {
-		
+
+		pw.println("");
+		//pw.printIdent(var.getName()+".");
+		pw.printIdent("erro.");
+		pw.print(m.getName()+"(");
+		if(realParams != null){
+			realParams.genKra(pw);
+		}
+		pw.print(");");
 	}
     
     public void genC( PW pw, boolean putParenthesis ) {

@@ -7,7 +7,7 @@ package ast;
 
 public class CompositeStatement extends Statement{
 	
-	StatementType type; //?
+	StatementType type;
 	StatementList s;
 	
 	public CompositeStatement(StatementList s){
@@ -22,5 +22,9 @@ public class CompositeStatement extends Statement{
 	
 	@Override
 	public void genC(PW pw) {
+	}
+	
+	public void genKra(PW pw){
+		s.genKra(pw);
 	}
 }

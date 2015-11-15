@@ -25,4 +25,15 @@ public class IfStatement extends Statement {
 	@Override
 	public void genC(PW pw) {
 	}
+	
+	public void genKra(PW pw){
+		pw.printIdent("if");
+		e.genKra(pw, true);
+		pw.println("{");
+		pw.add();
+		s.genKra(pw);
+		pw.sub();
+		pw.println("}");
+		pw.println("");
+	}
 }

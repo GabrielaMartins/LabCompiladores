@@ -32,6 +32,18 @@ public class CompositeExpr extends Expr {
         if ( putParenthesis )
           pw.print(")");
     }
+    
+    public void genKra(PW pw, boolean putParenthesis){
+    	if(putParenthesis)
+    		pw.print("(");
+    	left.genKra(pw, true);
+    	if(this.oper!= null){
+    		pw.print(this.oper.toString());
+    		right.genKra(pw, true);
+    		if(putParenthesis)
+    			pw.print(")");
+    	}
+    }
 
     @Override
 	public Type getType() {
