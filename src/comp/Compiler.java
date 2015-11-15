@@ -1153,6 +1153,9 @@ public class Compiler {
 	}
 	
 	private boolean checkRelExpr( Type left, Type right ) {
+		if (left == Type.nullType || right == Type.nullType)
+			return true;
+		else
 			return left == right;
 	}
 
