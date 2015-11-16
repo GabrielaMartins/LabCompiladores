@@ -253,7 +253,6 @@ public class Compiler {
 			String name = lexer.getStringValue();
 			lexer.nextToken();
 			
-			
 			if ( lexer.token == Symbol.LEFTPAR ) {
 				this.returnCnt = 0;
 				met = methodDec(t, name, qualifier, finalQualifier, staticQualifier);
@@ -455,7 +454,7 @@ public class Compiler {
 
 		if ( lexer.token != Symbol.IDENT ) signalError.show("Identifier expected");
 		
-		//verifica de váriável já foi declarada
+		//verifica de variável já foi declarada
 		
 		String name = lexer.getStringValue();
 		//v = (Variable) symbolTable.get(name);
@@ -1125,23 +1124,10 @@ public class Compiler {
 				|| op == Symbol.LT || op == Symbol.GE || op == Symbol.GT ) {
 			lexer.nextToken();
 			Expr right = simpleExpr();
-			//ER-SEM57 ER-SEM58
+			//ER-SEM57 
+			//ER-SEM58
 			
 			Variable var = null;
-			
-			/*if(left.getType()instanceof KraClass){
-				var = ((VariableExpr)left).getV();
-				if(var.getIsNull() == true && (op == Symbol.NEQ || op == Symbol.EQ)){
-					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
-				}
-			}
-			
-			if(right.getType()instanceof KraClass){
-				var = ((VariableExpr)right).getV();
-				if(var.getIsNull()==true && (op == Symbol.NEQ || op == Symbol.EQ)){
-					signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
-				}
-			}*/
 			
 			if(!checkRelExpr(left.getType(), right.getType())){
 				signalError.show("Incompatible types cannot be compared with '" + op.toString()+ "' because the result will always be 'false'");
@@ -1292,7 +1278,7 @@ public class Compiler {
 		Expr e;
 		ExprList exprList = null;
 		String messageName, ident;
-		Method m = null;;
+		Method m = null;
 
 		switch (lexer.token) {
 		// IntValue
@@ -1452,9 +1438,9 @@ public class Compiler {
 				
 				//ER-SEM63
 				if (lexer.token == Symbol.LEFTPAR) {
-					if (currentClass.searchStaticMethod(firstId) != null) {
+					//if (currentClass.searchStaticMethod(firstId) != null) {
 						signalError.show("'.' or '=' expected after an identifier OR statement expected");
-					}
+					//}
 				}
 				
 				Variable var;
@@ -1598,7 +1584,9 @@ public class Compiler {
 					
 					m = currentClass.searchMethod(ident);
 					if(m==null){
-						signalError.show("Method '"+ ident+ "' was not found in class '" 
+						m = currentClass.searchMethodS(ident);
+						if (m == null)
+							signalError.show("Method '"+ ident+ "' was not found in class '" 
 										 + currentClass.getName()+ "' or its superclasses");
 					}
 					
@@ -1607,7 +1595,7 @@ public class Compiler {
 					//ER-SEM40: Tipos incorretos na passagem de parâmetro
 					boolean isOk = checkParameters(exprList, m.getParamList());
 					
-					//return new MessageSendToSelf(currentClass, m, exprList);
+					return new MessageSendToSelf(currentClass, m, exprList);
 				}
 				else if ( lexer.token == Symbol.DOT ) {
 					// "this" "." Id "." Id "(" [ ExpressionList ] ")"
@@ -1636,7 +1624,6 @@ public class Compiler {
 					}
 					
 					return new MessageSendToSelf(currentClass, var);
-
 				}
 			}
 			break;
