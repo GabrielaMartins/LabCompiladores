@@ -61,7 +61,7 @@ public class KraClass extends Type {
 		 pw.println("*new_" + this.getCname()+ "(void);");
 		 pw.println("");
 		 
-		 genCMethodList.genC(pw);
+		 //genCMethodList.genC(pw);
 	}
 	
     public void genKra(PW pw) {

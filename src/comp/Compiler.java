@@ -64,8 +64,6 @@ public class Compiler {
 			program.setClassList(kraClassList);
 		}
 		catch( RuntimeException e) {
-			//System.out.println(metaobjectCallList.get(metaobjectCallList.size()-1).getParamList().toString());
-			//e.printStackTrace();
 		}
 		
 		return program;
