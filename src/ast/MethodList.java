@@ -18,12 +18,10 @@ public class MethodList {
        methodList = new ArrayList<Method>();
     }
     
-    public void genKra(PW pw) {
-    	
+    public void genKra(PW pw) {  	
     	Iterator<Method> it = elements();
     	while (it.hasNext()) {
     		it.next().genKra(pw);
-    		pw.sub();
     		pw.println("");
     	}
     }

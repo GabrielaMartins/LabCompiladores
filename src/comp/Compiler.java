@@ -64,7 +64,6 @@ public class Compiler {
 			program.setClassList(kraClassList);
 		}
 		catch( RuntimeException e) {
-			// if there was an exception, there is a compilation signalError
 		}
 		
 		return program;

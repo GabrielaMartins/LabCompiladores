@@ -22,6 +22,7 @@ public class KraClass extends Type {
 	private Symbol qualifier;
 	private ArrayList<InstanceVariableList> instanceVariableList;
 	private MethodList publicMethodList, privateMethodList;
+	private MethodList genCMethodList;
     private HashMap<String, Variable> localTable;
 	
 	public KraClass( String name, Symbol qualifier, KraClass superClass ) {
@@ -31,7 +32,36 @@ public class KraClass extends Type {
 		this.instanceVariableList = new ArrayList<>();
 		this.publicMethodList = new MethodList();
 		this.privateMethodList = new MethodList();
+		this.genCMethodList = new MethodList();
         this.localTable  = new HashMap<String, Variable>();
+	}
+	
+	public void genC(PW pw){
+		 pw.println("typedef");
+		 pw.add();
+		 pw.printIdent("struct _St_");
+		 pw.sub();
+		 pw.println(this.getCname() + "{");
+		 pw.add();
+		 if(genCMethodList != null){
+			pw.printlnIdent("Func *vt;");
+			pw.println("");
+		 }
+		 
+		 Iterator<InstanceVariableList> it = instanceVariableList.iterator();
+		 while (it.hasNext()) {
+			 it.next().genC(pw);
+		 }
+		 
+		 pw.sub();
+		 pw.println("} _class_" + this.getCname()+";");
+		 pw.println("");
+		 
+		 pw.print("_class_" + this.getCname()+ " ");
+		 pw.println("*new_" + this.getCname()+ "(void);");
+		 pw.println("");
+		 
+		 //genCMethodList.genC(pw);
 	}
 	
     public void genKra(PW pw) {
@@ -47,12 +77,13 @@ public class KraClass extends Type {
     	pw.println("{");
     	
     	Iterator<InstanceVariableList> it = instanceVariableList.iterator();
+    	pw.add();
     	while (it.hasNext()) {
     		it.next().genKra(pw);
     	}
     	
-    	this.privateMethodList.genKra(pw);
-    	this.publicMethodList.genKra(pw);
+    	this.genCMethodList.genKra(pw);
+    	pw.sub();
     	
     	pw.println("}");
     	pw.println("");
@@ -84,11 +115,13 @@ public class KraClass extends Type {
 	public void addPublicMethod(Method method) {
 
 		publicMethodList.addElement(method);
+		genCMethodList.addElement(method);
 	}
 
 	public void addPrivateMethod(Method method) {
 
-		privateMethodList.addElement(method); 
+		privateMethodList.addElement(method);
+		genCMethodList.addElement(method);
 	}
 
 	public boolean hasSuper() {

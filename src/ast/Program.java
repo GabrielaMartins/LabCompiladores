@@ -28,6 +28,21 @@ public class Program {
 	}
 
 	public void genC(PW pw) {
+		pw.println("#include <stdio.h>");
+		pw.println("#include <stdlib.h>");
+		pw.println("#include <malloc.h>");
+		pw.println("");
+		pw.println("typedef int boolean");
+		pw.println("#define true 1");
+		pw.println("#define false 0");
+		pw.println("");
+		pw.println("typedef");
+		pw.add();
+		pw.printlnIdent("void (*Func)();");
+		pw.sub();
+		pw.println("");
+		
+		classList.genC(pw);
 	}
 	
 	public void setClassList(KraClassList classList) {

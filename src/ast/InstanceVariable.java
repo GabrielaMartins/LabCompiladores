@@ -19,7 +19,7 @@ public class InstanceVariable extends Variable {
     }
     
     public void genKra(PW pw){
-    	pw.print(getName());
+    	pw.print("_" + getName());
     }
 
 }

@@ -13,8 +13,31 @@ public class InstanceVariableList {
        instanceVariableList = new ArrayList<InstanceVariable>();
     }
     
+    public void genC(PW pw){
+    	Iterator <InstanceVariable> it = instanceVariableList.iterator();
+    	boolean firstIt = true;
+    	
+    	while(it.hasNext()){
+    		InstanceVariable iv = it.next();
+    		
+    		if(firstIt == true){
+    			pw.printIdent(iv.getType().getCname() + " ");
+    		} 
+    		
+    		iv.genKra(pw);
+    		
+    		if(it.hasNext()){
+    			pw.print(", ");
+    		}else{
+    			pw.print(";");
+    		}
+    		
+    	}
+    	
+    	pw.println("");
+    }
+    
     public void genKra(PW pw) {
-    	pw.add();
     	Iterator <InstanceVariable> it = instanceVariableList.iterator();
     	boolean firstIt = true;
     	

@@ -35,7 +35,6 @@ public class Method implements Comparable<Method> {
     }
     
     public void genKra(PW pw){
-    	pw.add();
     	boolean first = true;
     	if(this.finalQualifier != null){
     		pw.printIdent(this.finalQualifier.toString() + " ");
