@@ -3,6 +3,7 @@
 *.kra2
 *.KRA
 *.KRA2
+*.c
 bin/
 bin/tests
 tests/
