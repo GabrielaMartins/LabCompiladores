@@ -703,8 +703,8 @@ public class Compiler {
 		case IF:
 			ret = ifStatement();
 			break;
-		case BREAK://?
-			breakStatement();
+		case BREAK:
+			ret = breakStatement();
 			break;
 		case WHILE:
 			ret = whileStatement();
@@ -1088,7 +1088,7 @@ public class Compiler {
 		return new WritelnStatement(expr);
 	}
 
-	private void breakStatement() {//?
+	private BreakStatement breakStatement() {
 		
 		if (whileStack.isEmpty()) {
 			signalError.show("Command 'break' outside a command 'while'");
@@ -1098,9 +1098,11 @@ public class Compiler {
 		if ( lexer.token != Symbol.SEMICOLON )
 			signalError.show(SignalError.semicolon_expected);
 		lexer.nextToken();
+		
+		return new BreakStatement();
 	}
 
-	private void nullStatement() {//?
+	private void nullStatement() {
 		lexer.nextToken();
 	}
 
@@ -1436,11 +1438,9 @@ public class Compiler {
 				// Id
 				// retorne um objeto da ASA que representa um identificador
 				
-				//ER-SEM63
+				//ER-SEM63, ER-SEM67 e ER-SEM74
 				if (lexer.token == Symbol.LEFTPAR) {
-					//if (currentClass.searchStaticMethod(firstId) != null) {
 						signalError.show("'.' or '=' expected after an identifier OR statement expected");
-					//}
 				}
 				
 				Variable var;

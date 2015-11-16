@@ -14,7 +14,8 @@ public enum StatementType {
 	Read("Read"),
 	While("While"),
 	If("If"),
-	Composite("Composite");
+	Composite("Composite"),
+	Break("Break");
 	
 	private String name;
 	
