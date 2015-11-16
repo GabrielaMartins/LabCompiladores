@@ -46,8 +46,8 @@ public class KraClassList {
     	
     	Iterator<KraClass> it = elements();
     	while (it.hasNext()) {
-    		
-    		it.next().genKra(pw);
+    		KraClass kr = (KraClass) it.next();
+    		kr.genKra(pw);
     	}
     }
     

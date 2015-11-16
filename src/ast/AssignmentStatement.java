@@ -45,7 +45,7 @@ public class AssignmentStatement extends Statement {
 			}
 			
 			if(this.right!= null){
-				pw.print(this.getType().toString());
+				pw.print(" " + this.getType().toString() + " ");
 				this.right.genKra(pw, false);
 			}
 				

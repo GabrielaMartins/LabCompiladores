@@ -29,7 +29,7 @@ public class MessageSendToVariable extends MessageSend {
 			if(realParams != null){
 				realParams.genKra(pw);
 			}
-			pw.print(");");
+			pw.print(")");
 		}else{
 			System.out.println(m.getName());
 		}

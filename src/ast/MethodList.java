@@ -21,7 +21,8 @@ public class MethodList {
     public void genKra(PW pw) {  	
     	Iterator<Method> it = elements();
     	while (it.hasNext()) {
-    		it.next().genKra(pw);
+    		Method m = it.next();
+    		m.genKra(pw);
     		pw.println("");
     	}
     }

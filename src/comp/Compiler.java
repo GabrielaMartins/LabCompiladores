@@ -554,7 +554,6 @@ public class Compiler {
 			}
 			
 			lexer.nextToken();
-		
 		}
 		
 		if(lexer.token != Symbol.SEMICOLON){
@@ -839,9 +838,8 @@ public class Compiler {
 				if (left instanceof VariableExpr) {
 					String typeName = ((VariableExpr) left).getV().getName();
 					localDecType(typeName);
-				}
-				
-				if (left instanceof MessageSendToVariable ||
+					left = null;
+				} else if (left instanceof MessageSendToVariable ||
 						left instanceof MessageSendToSuper ||
 						left instanceof MessageSendToSelf) {
 					

@@ -41,7 +41,7 @@ public class MessageSendToSelf extends MessageSend {
     		pw.print(m.getName()+ "(");
     		if(realParams != null)
     			realParams.genKra(pw);
-        	pw.println(");");
+        	pw.println(")");
     	}else if(var != null){
     		pw.print(var.getName());
     	}	
