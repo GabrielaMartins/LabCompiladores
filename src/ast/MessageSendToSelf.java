@@ -35,8 +35,6 @@ public class MessageSendToSelf extends MessageSend {
 	}
     
     public void genKra(PW pw, boolean putParenthesis) {
-
-    	pw.println("");
     	pw.printIdent("this.");
     	
     	if(m != null){
@@ -45,7 +43,7 @@ public class MessageSendToSelf extends MessageSend {
     			realParams.genKra(pw);
         	pw.println(");");
     	}else if(var != null){
-    		pw.print(var.getName()+ ";");
+    		pw.print(var.getName());
     	}	
     }
     

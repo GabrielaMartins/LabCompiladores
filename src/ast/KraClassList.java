@@ -50,4 +50,12 @@ public class KraClassList {
     		it.next().genKra(pw);
     	}
     }
+    
+    public void genC(PW pw){
+    	Iterator<KraClass> it = elements();
+    	while (it.hasNext()) {
+    		
+    		it.next().genC(pw);
+    	}
+    }
 }

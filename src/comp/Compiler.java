@@ -64,7 +64,8 @@ public class Compiler {
 			program.setClassList(kraClassList);
 		}
 		catch( RuntimeException e) {
-			// if there was an exception, there is a compilation signalError
+			//System.out.println(metaobjectCallList.get(metaobjectCallList.size()-1).getParamList().toString());
+			//e.printStackTrace();
 		}
 		
 		return program;
