@@ -465,7 +465,7 @@ public class Compiler {
 			symbolTable.putInLocal(name, v);
 			localVarList.addElement(v);//?
 		}else{
-			signalError.show("Variable " + name + " is being redeclared");
+			signalError.show("Variable '" + name + "' is being redeclared");
 		}
 		
 		lexer.nextToken();
